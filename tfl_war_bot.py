@@ -121,7 +121,7 @@ async def autopredict(interaction: discord.Interaction):
 # --- On Ready (sync commands) ---
 @bot.event
 async def on_ready():
-    guild = discord.Object(id=YOUR_GUILD_ID)  # Replace with your server's ID
+    guild = discord.Object(id=1344056482668478557)  # Replace with your server's ID
     await bot.tree.sync(guild=guild)
     print(f"Bot is ready. Logged in as {bot.user}. Slash commands synced.")
 
