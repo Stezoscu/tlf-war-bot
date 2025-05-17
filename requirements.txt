@@ -1,4 +1,4 @@
 discord.py
 numpy
 requests
-matloblib
+matplotlib
