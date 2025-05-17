@@ -1,16 +1,16 @@
-import os
-import time
-import requests
-import numpy as np
 import discord
 from discord import app_commands
 from discord.ext import commands
+import os
+import requests
+import time
+import numpy as np
 
-# --- Setup bot ---
 intents = discord.Intents.default()
+intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# --- Prediction logic ---
+# ---- Prediction logic ----
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
     lead_gain_per_hour = current_lead / current_hour
     opponent_score = your_score - current_lead
@@ -36,26 +36,7 @@ def predict_war_end(current_hour, current_lead, your_score, starting_score_goal)
         "final_lead": int(final_lead)
     }
 
-# --- Manual prediction command ---
-@bot.tree.command(name="warpredict", description="Predict Torn war outcome from manual inputs")
-@app_commands.describe(
-    current_hour="How many hours the war has been running",
-    current_lead="Current lead (your score - enemy score)",
-    your_score="Your faction's score",
-    starting_goal="Starting score goal (target)"
-)
-async def warpredict(interaction: discord.Interaction, current_hour: float, current_lead: int, your_score: int, starting_goal: int):
-    result = predict_war_end(current_hour, current_lead, your_score, starting_goal)
-    await interaction.response.send_message(
-        f"🧠 **TLF Torn War Predictor**\n"
-        f"📅 War ends at hour **{result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
-        f"🏁 Final Scores:\n"
-        f" - You: **{result['your_final_score']}**\n"
-        f" - Opponent: **{result['opponent_final_score']}**\n"
-        f"📊 Final Lead: **{result['final_lead']}**"
-    )
-
-# --- Torn API v2 Auto Prediction ---
+# ---- Torn API fetcher ----
 def fetch_v2_war_data():
     api_key = os.getenv("TORN_API_KEY")
     your_faction_id = int(os.getenv("FACTION_ID"))
@@ -95,7 +76,27 @@ def fetch_v2_war_data():
         "starting_goal": starting_goal
     }
 
-@bot.tree.command(name="autopredict", description="Auto predict Torn war outcome using live API data")
+# ---- Manual command ----
+@bot.tree.command(name="warpredict", description="Manually predict Torn war end.")
+@app_commands.describe(
+    current_hour="How many hours has the war been running?",
+    current_lead="Your current lead (your score - enemy score)",
+    your_score="Your faction's score",
+    starting_goal="Starting lead target (e.g., 3000)"
+)
+async def warpredict(interaction: discord.Interaction, current_hour: float, current_lead: int, your_score: int, starting_goal: int):
+    result = predict_war_end(current_hour, current_lead, your_score, starting_goal)
+    await interaction.response.send_message(
+        f"🧠 **TLF Torn War Predictor**\n"
+        f"📅 War ends at hour **{result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
+        f"🏁 Final Scores:\n"
+        f" - You: **{result['your_final_score']}**\n"
+        f" - Opponent: **{result['opponent_final_score']}**\n"
+        f"📊 Final Lead: **{result['final_lead']}**"
+    )
+
+# ---- Auto command from Torn API ----
+@bot.tree.command(name="autopredict", description="Automatically predict war end using live Torn API data.")
 async def autopredict(interaction: discord.Interaction):
     try:
         data = fetch_v2_war_data()
@@ -118,11 +119,11 @@ async def autopredict(interaction: discord.Interaction):
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
 
-# --- On Ready (sync commands) ---
+# ---- Sync and startup ----
 @bot.event
 async def on_ready():
     try:
-        guild = discord.Object(id=1344056482668478557)  # Replace with your real server ID
+        guild = discord.Object(id=1344056482668478557)
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Synced {len(synced)} commands to guild.")
     except Exception as e:
@@ -136,5 +137,5 @@ async def on_ready():
 
     print(f"✅ Bot is ready. Logged in as {bot.user}.")
 
-# --- Run bot ---
+# ---- Run bot ----
 bot.run(os.getenv("BOT_TOKEN"))
