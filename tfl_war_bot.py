@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import numpy as np
+import os
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -60,4 +61,4 @@ async def on_ready():
     print(f"Bot is ready. Logged in as {bot.user}.")
 
 # --- Start the bot ---
-bot.run('MTM3MzIwOTIwODIyNDQ4NTQwOQ.GN9KnM.98PJtRTjuSGe1pypHgKLUlsCJUtCdqpQ-075lw')
+bot.run(os.getenv("BOT_TOKEN"))
