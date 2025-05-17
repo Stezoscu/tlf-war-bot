@@ -5,6 +5,8 @@ import os
 import requests
 import time
 import numpy as np
+import matplotlib.pyplot as plt
+from io import BytesIO
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -106,36 +108,47 @@ async def autopredict(interaction: discord.Interaction):
             data["your_score"],
             data["starting_goal"]
         )
+
+        # Generate chart
+        hours = np.arange(data["current_hour"], result["war_end_hour"] + 1, 0.5)
+        lead_gain_per_hour = data["current_lead"] / data["current_hour"]
+        lead_values = data["current_lead"] + lead_gain_per_hour * (hours - data["current_hour"])
+        target_values = data["starting_goal"] * (0.99) ** (hours - 24)
+
+        fig, ax = plt.subplots()
+        ax.plot(hours, lead_values, label="Your Lead")
+        ax.plot(hours, target_values, label="Target", linestyle="--")
+        ax.axvline(result["war_end_hour"], color="red", linestyle=":", label="Predicted End")
+        ax.set_title("Lead vs. Decaying Target")
+        ax.set_xlabel("War Hour")
+        ax.set_ylabel("Points")
+        ax.legend()
+        ax.grid(True)
+
+        # Save chart to memory buffer
+        buf = BytesIO()
+        plt.savefig(buf, format="png")
+        buf.seek(0)
+        file = discord.File(fp=buf, filename="prediction_chart.png")
+        plt.close()
+
+        # Send response with chart
         await interaction.response.send_message(
-            f"📡 **Auto Prediction Based on Live Torn Data**\n"
-            f"🕓 War Duration: **{data['current_hour']} hours**\n"
-            f"📊 Current Score: **{data['your_score']}** | Lead: **{data['current_lead']}**\n"
-            f"🎯 Target: **{data['starting_goal']}**\n"
-            f"📅 Predicted End: **hour {result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
-            f"🏁 Final Score Estimate:\n"
-            f" - You: **{result['your_final_score']}**\n"
-            f" - Opponent: **{result['opponent_final_score']}**"
+            content=(
+                f"📡 **Auto Prediction Based on Live Torn Data**\n"
+                f"🕓 War Duration: **{data['current_hour']} hours**\n"
+                f"📊 Current Score: **{data['your_score']}** | Lead: **{data['current_lead']}**\n"
+                f"🎯 Target: **{data['starting_goal']}**\n"
+                f"📅 Predicted End: **hour {result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
+                f"🏁 Final Score Estimate:\n"
+                f" - You: **{result['your_final_score']}**\n"
+                f" - Opponent: **{result['opponent_final_score']}**"
+            ),
+            file=file
         )
+
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
-
-# ---- Sync and startup ----
-@bot.event
-async def on_ready():
-    try:
-        guild = discord.Object(id=1344056482668478557)
-        synced = await bot.tree.sync(guild=guild)
-        print(f"🔁 Synced {len(synced)} commands to guild.")
-    except Exception as e:
-        print(f"❌ Error syncing guild commands: {e}")
-
-    try:
-        synced_global = await bot.tree.sync()
-        print(f"🌍 Synced {len(synced_global)} global commands.")
-    except Exception as e:
-        print(f"❌ Error syncing global commands: {e}")
-
-    print(f"✅ Bot is ready. Logged in as {bot.user}.")
-
+        
 # ---- Run bot ----
 bot.run(os.getenv("BOT_TOKEN"))
