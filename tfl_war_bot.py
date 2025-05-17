@@ -121,9 +121,20 @@ async def autopredict(interaction: discord.Interaction):
 # --- On Ready (sync commands) ---
 @bot.event
 async def on_ready():
-    guild = discord.Object(id=1344056482668478557)  # Replace with your server's ID
-    await bot.tree.sync(guild=guild)
-    print(f"Bot is ready. Logged in as {bot.user}. Slash commands synced.")
+    try:
+        guild = discord.Object(id=1344056482668478557)  # Replace with your real server ID
+        synced = await bot.tree.sync(guild=guild)
+        print(f"🔁 Synced {len(synced)} commands to guild.")
+    except Exception as e:
+        print(f"❌ Error syncing guild commands: {e}")
+
+    try:
+        synced_global = await bot.tree.sync()
+        print(f"🌍 Synced {len(synced_global)} global commands.")
+    except Exception as e:
+        print(f"❌ Error syncing global commands: {e}")
+
+    print(f"✅ Bot is ready. Logged in as {bot.user}.")
 
 # --- Run bot ---
 bot.run(os.getenv("BOT_TOKEN"))
