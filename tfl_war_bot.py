@@ -69,7 +69,8 @@ def fetch_v2_war_data():
     your_score = your["score"]
     enemy_score = enemy["score"]
     current_lead = your_score - enemy_score
-    starting_goal = ranked_war.get("target", 3000)
+    starting_goal = ranked_war.get("target", 3000)        
+
 
     return {
         "current_hour": current_hour,
@@ -108,6 +109,9 @@ async def autopredict(interaction: discord.Interaction):
             data["your_score"],
             data["starting_goal"]
         )
+        # Calculate current decayed target
+        current_target = data["starting_goal"] * (0.99) ** (data["current_hour"] - 24)
+        current_target = round(current_target, 1)
 
         # Generate chart
         hours = np.arange(data["current_hour"], result["war_end_hour"] + 1, 0.5)
@@ -139,6 +143,7 @@ async def autopredict(interaction: discord.Interaction):
                 f"🕓 War Duration: **{data['current_hour']} hours**\n"
                 f"📊 Current Score: **{data['your_score']}** | Lead: **{data['current_lead']}**\n"
                 f"🎯 Target: **{data['starting_goal']}**\n"
+                f"📉 **Predicted Target Right Now**: **{current_target}**\n"
                 f"📅 Predicted End: **hour {result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
                 f"🏁 Final Score Estimate:\n"
                 f" - You: **{result['your_final_score']}**\n"
@@ -149,6 +154,6 @@ async def autopredict(interaction: discord.Interaction):
 
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
-        
+
 # ---- Run bot ----
 bot.run(os.getenv("BOT_TOKEN"))
