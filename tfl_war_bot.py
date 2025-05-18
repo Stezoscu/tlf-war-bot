@@ -7,6 +7,11 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
+import json
+
+# Load gear perks from JSON
+with open("data/gear_perks.json", "r", encoding="utf-8") as f:
+    gear_perks = json.load(f)
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -157,6 +162,29 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
 
+@bot.tree.command(name="check_gear_perk", description="Look up a gear perk and get its description.")
+@app_commands.describe(perk_name="Name of the gear perk to look up")
+async def check_gear_perk(interaction: discord.Interaction, perk_name: str):
+    perk = next((name for name in gear_perks if name.lower() == perk_name.lower()), None)
+    if perk:
+        await interaction.response.send_message(f"🔍 **{perk}**: {gear_perks[perk]}")
+    else:
+        await interaction.response.send_message(f"❌ Perk '{perk_name}' not found.")
+
+@bot.tree.command(name="list_gear_perks", description="List all gear perks.")
+async def list_gear_perks(interaction: discord.Interaction):
+    perk_list = "\n".join(sorted(gear_perks.keys()))
+    await interaction.response.send_message(f"📜 **Gear Perks List**:\n```{perk_list}```")
+
+@bot.event
+async def on_ready():
+    try:
+        guild = discord.Object(id=1344056482668478557)  # Replace with your actual server ID
+        synced = await bot.tree.sync(guild=guild)
+        print(f"🔁 Synced {len(synced)} commands to guild.")
+    except Exception as e:
+        print(f"❌ Error syncing commands: {e}")
+    print(f"✅ Bot is ready. Logged in as {bot.user}")
 
 # ---- Run bot ----
 bot.run(os.getenv("BOT_TOKEN"))
