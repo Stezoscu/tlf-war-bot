@@ -16,7 +16,6 @@ with open("data/gear_perks.json", "r", encoding="utf-8") as f:
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
-tree = app_commands.CommandTree(bot)
 
 # ---- Prediction logic ----
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
@@ -86,7 +85,7 @@ def fetch_v2_war_data():
 
 # ---- Slash Commands ----
 
-@tree.command(name="warpredict", description="Manually predict Torn war end.")
+@bot.tree.command(name="warpredict", description="Manually predict Torn war end.")
 @app_commands.describe(
     current_hour="How many hours has the war been running?",
     current_lead="Your current lead (your score - enemy score)",
@@ -104,7 +103,7 @@ async def warpredict(interaction: discord.Interaction, current_hour: float, curr
         f"📊 Final Lead: **{result['final_lead']}**"
     )
 
-@tree.command(name="autopredict", description="Automatically predict war end using live Torn API data.")
+@bot.tree.command(name="autopredict", description="Automatically predict war end using live Torn API data.")
 @app_commands.describe(starting_goal="Optional: enter the original target (default is 3000)")
 async def autopredict(interaction: discord.Interaction, starting_goal: int = 3000):
     try:
@@ -159,7 +158,7 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
 
-@tree.command(name="check_gear_perk", description="Look up a gear perk and get its description.")
+@bot.tree.command(name="check_gear_perk", description="Look up a gear perk and get its description.")
 @app_commands.describe(perk_name="Name of the gear perk to look up")
 async def check_gear_perk(interaction: discord.Interaction, perk_name: str):
     perk = next((name for name in gear_perks if name.lower() == perk_name.lower()), None)
@@ -168,19 +167,19 @@ async def check_gear_perk(interaction: discord.Interaction, perk_name: str):
     else:
         await interaction.response.send_message(f"❌ Perk '{perk_name}' not found.")
 
-@tree.command(name="list_gear_perks", description="List all gear perks.")
+@bot.tree.command(name="list_gear_perks", description="List all gear perks.")
 async def list_gear_perks(interaction: discord.Interaction):
     perk_list = "\n".join(sorted(gear_perks.keys()))
     await interaction.response.send_message(f"📜 **Gear Perks List**:\n```{perk_list}```")
 
-# ---- Ready and run ----
+# ---- Sync and run ----
 
 @bot.event
 async def on_ready():
     try:
-        guild = discord.Object(id=1344056482668478557)  # Replace with your server ID
-        await tree.sync(guild=guild)
-        print(f"🔁 Synced commands to guild.")
+        guild = discord.Object(id=1344056482668478557)  # your server ID
+        synced = await bot.tree.sync(guild=guild)
+        print(f"🔁 Synced {len(synced)} commands to guild.")
     except Exception as e:
         print(f"❌ Error syncing commands: {e}")
     print(f"✅ Bot is ready. Logged in as {bot.user}")
