@@ -12,7 +12,7 @@ import json
 # Load gear perks from JSON
 with open("data/gear_perks.json", "r", encoding="utf-8") as f:
     gear_perks = json.load(f)
-    
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -178,11 +178,18 @@ async def list_gear_perks(interaction: discord.Interaction):
 @bot.event
 async def on_ready():
     try:
-        guild = discord.Object(id=1344056482668478557)  # your server ID
+        guild = discord.Object(id=1344056482668478557)  # Replace with your server ID
+
+        # First clear any cached commands
+        await bot.tree.clear_commands(guild=guild)
+
+        # Then sync all fresh commands
         synced = await bot.tree.sync(guild=guild)
-        print(f"🔁 Synced {len(synced)} commands to guild.")
+
+        print(f"🔁 Force-synced {len(synced)} commands to guild.")
     except Exception as e:
         print(f"❌ Error syncing commands: {e}")
     print(f"✅ Bot is ready. Logged in as {bot.user}")
+
 
 bot.run(os.getenv("BOT_TOKEN"))
