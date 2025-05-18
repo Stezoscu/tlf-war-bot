@@ -12,6 +12,7 @@ import json
 # Load gear perks from JSON
 with open("data/gear_perks.json", "r", encoding="utf-8") as f:
     gear_perks = json.load(f)
+    
 
 intents = discord.Intents.default()
 intents.message_content = True
