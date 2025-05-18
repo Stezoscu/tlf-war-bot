@@ -1,0 +1,188 @@
+{
+  "Medical": {
+    "First Aid": "Reduces hospital time by 20%.",
+    "Miracle Worker": "Chance to revive others in combat."
+  },
+  "Army": {
+    "Camouflage": "Reduces damage taken in stealth attacks.",
+    "Marksman": "Increases rifle accuracy."
+  },
+  "Adult Novelties": {
+    "Blackmail": "Generates additional income.",
+    "Voyeur": "Enhances Erotic DVD effectiveness.",
+    "Party Supplies": "Provides special items.",
+    "Bondage": "Reduces enemy speed by 25%.",
+    "Indecent": "100% bonus to Erotic DVDs."
+  },
+  "Amusement Park": {
+    "Dauntless": "+2 nerve.",
+    "Free Ride": "Provides happiness boost.",
+    "Unflinching": "+10 maximum nerve.",
+    "Adrenaline Rush": "25% epinephrine effect & duration.",
+    "Thrill Seeker": "10% crime experience and skill gain."
+  },
+  "Candle Shop": {
+    "Warming Therapy": "Provides happiness boost.",
+    "Illumination": "50% awareness.",
+    "Calming Therapy": "Provides nerve boost.",
+    "Reinvigorating Therapy": "Provides energy boost.",
+    "Meditation": "View someone's true level if they are level holding."
+  },
+  "Car Dealership": {
+    "Test Drive": "Provides racing point.",
+    "Discount": "75% cost discount on car parts.",
+    "No Fees": "No item market fees.",
+    "Escape Button": "Escape button always enabled."
+  },
+  "Clothing Store": {
+    "Fashion Sense": "25% passive dexterity.",
+    "Armor Fit": "20% armor mitigation bonus.",
+    "Mugging Reduction": "75% opponent mugging reduction."
+  },
+  "Cruise Line Agency": {
+    "Extra Luggage": "2 extra travel items.",
+    "VIP Service": "3 extra travel items."
+  },
+  "Cyber Cafe": {
+    "Fast Coding": "50% virus coding time reduction."
+  },
+  "Detective Agency": {
+    "Arrest Ability": "Enables arresting opponents."
+  },
+  "Farm": {
+    "Hunting Reward": "25% hunting reward bonus."
+  },
+  "Firework Stand": {
+    "Awareness": "50% awareness.",
+    "Flame Thrower": "25% flame-thrower damage & accuracy."
+  },
+  "Fitness Center": {
+    "Gym Motivation": "50% reduction of happiness loss in gym.",
+    "Life Regeneration": "3% life regeneration per tick.",
+    "Gym Gains": "3% gym gains."
+  },
+  "Flower Shop": {
+    "Special Flowers": "Buy 5 additional special flowers abroad."
+  },
+  "Furniture Store": {
+    "Strength Boost": "25% passive strength.",
+    "Combat Training": "100% fist & kick damage."
+  },
+  "Game Shop": {
+    "Coding Efficiency": "50% virus coding time reduction.",
+    "Console Happiness": "100% console happiness."
+  },
+  "Gas Station": {
+    "Speed Boost": "25% passive speed.",
+    "Combat Healing": "Occasional 20% healing during combat.",
+    "Burn Resistance": "50% reduction in burning damage taken.",
+    "Burn Damage": "50% increase to burning damage dealt."
+  },
+  "Gents Strip Club": {
+    "Dexterity Boost": "25% passive dexterity.",
+    "Tyrosine Effect": "50% tyrosine effect & duration.",
+    "Gym Gains": "10% dexterity gym gains.",
+    "Melee Dodge": "1/4 chance to dodge melee attacks."
+  },
+  "Grocery Store": {
+    "Consumable Cooldown": "10% consumable cool down reduction.",
+    "Consumable Boost": "10% consumable boost."
+  },
+  "Gun Shop": {
+    "Ammo Discount": "20% discount on standard ammo cost.",
+    "Target Equipment": "Target equipment and ammo is always visible.",
+    "Extra Clip": "1 extra clip for guns during combat.",
+    "Weapon Damage": "10% primary & secondary weapon damage."
+  },
+  "Hair Salon": {
+    "Stealth Reduction": "Reduced enemy stealth.",
+    "Slashing Damage": "20% slashing weapon damage."
+  },
+  "Ladies Strip Club": {
+    "Defense Boost": "25% passive defense.",
+    "Serotonin Effect": "50% serotonin effectiveness & duration.",
+    "Gym Gains": "10% defense gym gains.",
+    "Melee Damage Reduction": "30% reduced damage from incoming melee attacks."
+  },
+  "Law Firm": {
+    "Bail Cost Reduction": "50% decreased bail costs.",
+    "Busting Efficiency": "Easier to bust more people at once.",
+    "Organized Crime Skill": "20% organized crime skill.",
+    "Bust Success Chance": "View success chance of potential busts."
+  },
+  "Lingerie Store": {
+    "Travel Items": "2 extra travel items.",
+    "Speed and Dexterity": "50% speed and dexterity when not wearing armor.",
+    "Property Upkeep": "Waive all property upkeep and staff costs.",
+    "Business Class Travel": "Provides free business class travel."
+  },
+  "Logistics Management": {
+    "Open Contracts": "Increases available open contracts from 3 to 5.",
+    "Travel Flexibility": "Allows traveling back to Torn from abroad while in hospital."
+  },
+  "Meat Warehouse": {
+    "Crime Penalty Reduction": "50% reduction in crime experience penalties.",
+    "Maximum Nerve": "10 maximum nerve.",
+    "Hunting Skill Gain": "25% hunting skill gain.",
+    "Life Regeneration": "3% life regeneration per tick."
+  },
+  "Mechanic Shop": {
+    "Car Part Discount": "75% cost discount on car parts.",
+    "Crash Protection": "Lose no car parts after crashing.",
+    "Driving Skill Gain": "50% driving skill gain."
+  },
+  "Mining Corporation": {
+    "Alcohol Cooldown": "30% alcohol cool down reduction.",
+    "Maximum Life": "10% maximum life."
+  },
+  "Music Store": {
+    "Gym Experience": "30% increased gym experience.",
+    "Stealth Reduction": "Reduced enemy stealth.",
+    "Stat Boost": "15% passive boost to all stats."
+  },
+  "Nightclub": {
+    "Overdose Reduction": "50% drug overdose reduction.",
+    "Education Continuity": "Education is unaffected by drug addiction."
+  },
+  "Oil Rig": {
+    "Interest Rate": "10% increase of Cayman Islands interest rate.",
+    "Banking Limit": "50% investment banking limit."
+  },
+  "Private Security Firm": {
+    "Flash Grenade": "50% flash grenade intensity.",
+    "Armor Bonus": "25% full armor set bonus."
+  },
+  "Property Broker": {
+    "Market Fees": "No item market fees.",
+    "Upgrade Cost Reduction": "10% property upgrade cost reduction."
+  },
+  "Pub": {
+    "Melee Damage": "10% melee weapon damage.",
+    "Alcohol Boost": "50% alcohol boost.",
+    "Maximum Nerve": "15 maximum nerve."
+  },
+  "Restaurant": {
+    "Melee Damage": "10% melee weapon damage.",
+    "Life Regeneration": "2% life regeneration per tick.",
+    "Consumable Cooldown": "25% consumable cool down reduction."
+  },
+  "Software Corporation": {
+    "Coding Time Reduction": "50% virus coding time reduction."
+  },
+  "Television Network": {
+    "Advertising Cost Reduction": "50% newspaper advertising cost reduction."
+  },
+  "Theater": {
+    "Spy Protection": "Cannot be targeted by spies.",
+    "Traveling Status": "Hidden traveling status & destination."
+  },
+  "Toy Shop": {
+    "Console Happiness": "100% console happiness.",
+    "Plushies": "5 extra plushies from abroad."
+  },
+  "Zoo": {
+    "Hunting Reward": "25% hunting reward.",
+    "Awareness": "70% awareness.",
+    "Accuracy": "3.00 accuracy."
+  }
+}
