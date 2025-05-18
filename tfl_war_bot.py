@@ -9,15 +9,18 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import json
 
-# Load gear perks from JSON
+# Load gear and job perks from JSON
 with open("data/gear_perks.json", "r", encoding="utf-8") as f:
     gear_perks = json.load(f)
+
+with open("data/job_perks.json", "r", encoding="utf-8") as f:
+    job_perks = json.load(f)
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ---- Prediction logic ----
+# ---- Prediction logic (unchanged) ----
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
     lead_gain_per_hour = current_lead / current_hour
     opponent_score = your_score - current_lead
@@ -43,7 +46,7 @@ def predict_war_end(current_hour, current_lead, your_score, starting_score_goal)
         "final_lead": int(final_lead)
     }
 
-# ---- Torn API fetcher ----
+# ---- Torn API fetcher (unchanged) ----
 def fetch_v2_war_data():
     api_key = os.getenv("TORN_API_KEY")
     your_faction_id = int(os.getenv("FACTION_ID"))
@@ -83,8 +86,7 @@ def fetch_v2_war_data():
         "starting_goal": starting_goal
     }
 
-# ---- Prediction Commands ----
-
+# ---- Prediction Commands (unchanged) ----
 @bot.tree.command(name="warpredict", description="Manually predict Torn war end.")
 @app_commands.describe(
     current_hour="How many hours has the war been running?",
@@ -158,8 +160,7 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
 
-# ---- Manually Registered Gear Commands ----
-
+# ---- Gear Perk Commands (manually registered) ----
 @app_commands.command(name="check_gear_perk", description="Look up a gear perk and get its description.")
 @app_commands.describe(perk_name="Name of the gear perk to look up")
 async def check_gear_perk(interaction: discord.Interaction, perk_name: str):
@@ -174,16 +175,38 @@ async def list_gear_perks(interaction: discord.Interaction):
     perk_list = "\n".join(sorted(gear_perks.keys()))
     await interaction.response.send_message(f"📜 **Gear Perks List**:\n```{perk_list}```")
 
-# ---- Ready + Sync ----
+# ---- Job Perk Commands (new) ----
+@app_commands.command(name="check_job_perk", description="Look up a job and get its perks.")
+@app_commands.describe(job_name="Name of the job or company")
+async def check_job_perk(interaction: discord.Interaction, job_name: str):
+    match = next((name for name in job_perks if name.lower() == job_name.lower()), None)
+    if match:
+        perks = "\n- ".join(job_perks[match])
+        await interaction.response.send_message(f"🧑‍💼 **{match} Job Perks**:\n- {perks}")
+    else:
+        await interaction.response.send_message(f"❌ Job '{job_name}' not found.")
 
+@app_commands.command(name="list_job_perks", description="List all jobs and their perks.")
+async def list_job_perks(interaction: discord.Interaction):
+    lines = [f"**{job}**:\n- " + "\n- ".join(perks) for job, perks in job_perks.items()]
+    response = "\n\n".join(lines)
+    if len(response) > 1900:
+        await interaction.response.send_message("📜 Job perks list is too long — check your DMs!")
+        await interaction.user.send(response)
+    else:
+        await interaction.response.send_message(response)
+
+# ---- Ready + Sync ----
 @bot.event
 async def on_ready():
     try:
-        guild = discord.Object(id=1344056482668478557)  # your server ID
+        guild = discord.Object(id=1344056482668478557)
 
-        # Manually add these two only
+        # Manually add non-autoregistered commands
         bot.tree.add_command(check_gear_perk, guild=guild)
         bot.tree.add_command(list_gear_perks, guild=guild)
+        bot.tree.add_command(check_job_perk, guild=guild)
+        bot.tree.add_command(list_job_perks, guild=guild)
 
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild.")
@@ -191,6 +214,5 @@ async def on_ready():
         print(f"❌ Error syncing commands: {e}")
     print(f"✅ Bot is ready. Logged in as {bot.user}")
 
-# ---- Run bot ----
-
+# ---- Run Bot ----
 bot.run(os.getenv("BOT_TOKEN"))
