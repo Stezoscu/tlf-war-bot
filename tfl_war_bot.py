@@ -180,16 +180,14 @@ async def on_ready():
     try:
         guild = discord.Object(id=1344056482668478557)  # Replace with your server ID
 
-        # First clear any cached commands
-        await bot.tree.clear_commands(guild=guild)
-
-        # Then sync all fresh commands
+        # Just force sync directly (don't attempt to clear_commands)
         synced = await bot.tree.sync(guild=guild)
 
         print(f"🔁 Force-synced {len(synced)} commands to guild.")
     except Exception as e:
         print(f"❌ Error syncing commands: {e}")
     print(f"✅ Bot is ready. Logged in as {bot.user}")
+
 
 
 bot.run(os.getenv("BOT_TOKEN"))
