@@ -20,7 +20,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ---- Prediction logic (unchanged) ----
+# ---- Prediction logic ----
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
     lead_gain_per_hour = current_lead / current_hour
     opponent_score = your_score - current_lead
@@ -46,7 +46,7 @@ def predict_war_end(current_hour, current_lead, your_score, starting_score_goal)
         "final_lead": int(final_lead)
     }
 
-# ---- Torn API fetcher (unchanged) ----
+# ---- Torn API fetcher ----
 def fetch_v2_war_data():
     api_key = os.getenv("TORN_API_KEY")
     your_faction_id = int(os.getenv("FACTION_ID"))
@@ -86,7 +86,7 @@ def fetch_v2_war_data():
         "starting_goal": starting_goal
     }
 
-# ---- Prediction Commands (unchanged) ----
+# ---- War Commands ----
 @bot.tree.command(name="warpredict", description="Manually predict Torn war end.")
 @app_commands.describe(
     current_hour="How many hours has the war been running?",
@@ -160,7 +160,7 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
 
-# ---- Gear Perk Commands (manually registered) ----
+# ---- Gear Perk Commands ----
 @app_commands.command(name="check_gear_perk", description="Look up a gear perk and get its description.")
 @app_commands.describe(perk_name="Name of the gear perk to look up")
 async def check_gear_perk(interaction: discord.Interaction, perk_name: str):
@@ -175,38 +175,47 @@ async def list_gear_perks(interaction: discord.Interaction):
     perk_list = "\n".join(sorted(gear_perks.keys()))
     await interaction.response.send_message(f"📜 **Gear Perks List**:\n```{perk_list}```")
 
-# ---- Job Perk Commands (new) ----
+# ---- Job Perk Commands ----
 @app_commands.command(name="check_job_perk", description="Look up a job and get its perks.")
 @app_commands.describe(job_name="Name of the job or company")
 async def check_job_perk(interaction: discord.Interaction, job_name: str):
-    match = next((name for name in job_perks if name.lower() == job_name.lower()), None)
+    match = next((name for name in job_perks if job_name.lower() in name.lower()), None)
     if match:
         perks = "\n- ".join(job_perks[match])
         await interaction.response.send_message(f"🧑‍💼 **{match} Job Perks**:\n- {perks}")
     else:
         await interaction.response.send_message(f"❌ Job '{job_name}' not found.")
 
-@app_commands.command(name="list_job_perks", description="List all jobs and their perks.")
+@app_commands.command(name="list_job_perks", description="List all jobs and their perks in a thread.")
 async def list_job_perks(interaction: discord.Interaction):
     lines = [f"**{job}**:\n- " + "\n- ".join(perks) for job, perks in job_perks.items()]
     response = "\n\n".join(lines)
-    if len(response) > 1900:
-        await interaction.response.send_message("📜 Job perks list is too long — check your DMs!")
-        await interaction.user.send(response)
-    else:
-        await interaction.response.send_message(response)
 
-# ---- Ready + Sync ----
+    thread = await interaction.channel.create_thread(
+        name="Job Perks",
+        type=discord.ChannelType.public_thread
+    )
+    await interaction.response.send_message("📜 Job perks list posted in a thread.")
+    await thread.send(response)
+
+@app_commands.command(name="list_jobs", description="List all job names available.")
+async def list_jobs(interaction: discord.Interaction):
+    jobs = sorted(job_perks.keys())
+    response = "📋 **Available Jobs:**\n```" + "\n".join(jobs) + "```"
+    await interaction.response.send_message(response)
+
+# ---- Ready & Sync ----
 @bot.event
 async def on_ready():
     try:
         guild = discord.Object(id=1344056482668478557)
 
-        # Manually add non-autoregistered commands
+        # Manually register slash commands not picked up by decorators
         bot.tree.add_command(check_gear_perk, guild=guild)
         bot.tree.add_command(list_gear_perks, guild=guild)
         bot.tree.add_command(check_job_perk, guild=guild)
         bot.tree.add_command(list_job_perks, guild=guild)
+        bot.tree.add_command(list_jobs, guild=guild)
 
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild.")
