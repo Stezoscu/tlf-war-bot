@@ -100,15 +100,19 @@ async def warpredict(interaction: discord.Interaction, current_hour: float, curr
 
 # ---- Auto command from Torn API ----
 @bot.tree.command(name="autopredict", description="Automatically predict war end using live Torn API data.")
-async def autopredict(interaction: discord.Interaction):
+@app_commands.describe(starting_goal="Optional: enter the original target (default is 3000)")
+async def autopredict(interaction: discord.Interaction, starting_goal: int = 3000):
     try:
         data = fetch_v2_war_data()
+        data["starting_goal"] = starting_goal  # override Torn's decayed value
+
         result = predict_war_end(
             data["current_hour"],
             data["current_lead"],
             data["your_score"],
             data["starting_goal"]
         )
+
         # Calculate current decayed target
         current_target = data["starting_goal"] * (0.99) ** (data["current_hour"] - 24)
         current_target = round(current_target, 1)
@@ -129,20 +133,18 @@ async def autopredict(interaction: discord.Interaction):
         ax.legend()
         ax.grid(True)
 
-        # Save chart to memory buffer
         buf = BytesIO()
         plt.savefig(buf, format="png")
         buf.seek(0)
         file = discord.File(fp=buf, filename="prediction_chart.png")
         plt.close()
 
-        # Send response with chart
         await interaction.response.send_message(
             content=(
                 f"📡 **Auto Prediction Based on Live Torn Data**\n"
                 f"🕓 War Duration: **{data['current_hour']} hours**\n"
                 f"📊 Current Score: **{data['your_score']}** | Lead: **{data['current_lead']}**\n"
-                f"🎯 Target: **{data['starting_goal']}**\n"
+                f"🎯 Starting Target: **{data['starting_goal']}**\n"
                 f"📉 **Predicted Target Right Now**: **{current_target}**\n"
                 f"📅 Predicted End: **hour {result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
                 f"🏁 Final Score Estimate:\n"
@@ -154,6 +156,7 @@ async def autopredict(interaction: discord.Interaction):
 
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}")
+
 
 # ---- Run bot ----
 bot.run(os.getenv("BOT_TOKEN"))
