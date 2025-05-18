@@ -175,25 +175,17 @@ async def list_gear_perks(interaction: discord.Interaction):
 
 # ---- Sync and run ----
 
-# Explicitly add all commands to the bot's command tree
-async def register_commands():
-    bot.tree.add_command(warpredict)
-    bot.tree.add_command(autopredict)
-    bot.tree.add_command(check_gear_perk)
-    bot.tree.add_command(list_gear_perks)
 
 # Wrap in a task and schedule it to run when bot starts
 @bot.event
 async def on_ready():
     try:
         guild = discord.Object(id=1344056482668478557)
-        await register_commands()  # ← REGISTER THEM!
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild.")
     except Exception as e:
         print(f"❌ Error syncing commands: {e}")
     print(f"✅ Bot is ready. Logged in as {bot.user}")
-
 
 
 
