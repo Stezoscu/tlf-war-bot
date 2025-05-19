@@ -318,12 +318,23 @@ async def check_points_price(interaction: discord.Interaction):
         response = requests.get(url)
         data = response.json()
 
-        if "pointsmarket" not in data or not data["pointsmarket"]:
-            await interaction.response.send_message("❌ No points data found.")
+        # Check the pointsmarket structure
+        if "pointsmarket" not in data:
+            await interaction.response.send_message("❌ No 'pointsmarket' field found in API response.")
             return
 
-        price = int(data["pointsmarket"][0]["cost"])
-        quantity = data["pointsmarket"][0].get("quantity", "N/A")
+        if not isinstance(data["pointsmarket"], list) or len(data["pointsmarket"]) == 0:
+            await interaction.response.send_message("❌ No point listings currently found.")
+            return
+
+        # Attempt to extract the cheapest listing
+        first_listing = data["pointsmarket"][0]
+        price = first_listing.get("cost")
+        quantity = first_listing.get("quantity", "N/A")
+
+        if price is None or not isinstance(price, int):
+            await interaction.response.send_message("❌ Invalid price data from API.")
+            return
 
         await interaction.response.send_message(
             f"📈 **Current Point Price:** {price:n} T$ per point\n📦 Quantity Available: {quantity}"
