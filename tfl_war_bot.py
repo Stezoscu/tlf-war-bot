@@ -314,16 +314,16 @@ async def check_points_price(interaction: discord.Interaction):
         return
 
     try:
-        url = f"https://api.torn.com/market/points?key={api_key}"
+        url = f"https://api.torn.com/market/?selections=pointsmarket&key={api_key}"
         response = requests.get(url)
         data = response.json()
 
-        if "cost" not in data:
-            await interaction.response.send_message(f"❌ Error fetching point price. API response: {data}")
+        if "pointsmarket" not in data or not data["pointsmarket"]:
+            await interaction.response.send_message("❌ No points data found.")
             return
 
-        price = int(data["cost"])
-        quantity = data.get("quantity", "N/A")
+        price = int(data["pointsmarket"][0]["cost"])
+        quantity = data["pointsmarket"][0].get("quantity", "N/A")
 
         await interaction.response.send_message(
             f"📈 **Current Point Price:** {price:n} T$ per point\n📦 Quantity Available: {quantity}"
@@ -344,11 +344,11 @@ async def check_point_market():
         return
 
     try:
-        url = f"https://api.torn.com/market?selections=points&key={api_key}"
+        url = f"https://api.torn.com/market/?selections=pointsmarket&key={api_key}"
         response = requests.get(url)
         data = response.json()
 
-        price = int(data["points"][0]["cost"])
+        price = int(data["pointsmarket"][0]["cost"])
 
         channel = discord.utils.get(bot.get_all_channels(), name="trading_alerts")
         if channel:
