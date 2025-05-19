@@ -1,188 +1,838 @@
 {
-  "Medical": {
-    "First Aid": "Reduces hospital time by 20%.",
-    "Miracle Worker": "Chance to revive others in combat."
-  },
-  "Army": {
-    "Camouflage": "Reduces damage taken in stealth attacks.",
-    "Marksman": "Increases rifle accuracy."
-  },
-  "Adult Novelties": {
-    "Blackmail": "Generates additional income.",
-    "Voyeur": "Enhances Erotic DVD effectiveness.",
-    "Party Supplies": "Provides special items.",
-    "Bondage": "Reduces enemy speed by 25%.",
-    "Indecent": "100% bonus to Erotic DVDs."
-  },
-  "Amusement Park": {
-    "Dauntless": "+2 nerve.",
-    "Free Ride": "Provides happiness boost.",
-    "Unflinching": "+10 maximum nerve.",
-    "Adrenaline Rush": "25% epinephrine effect & duration.",
-    "Thrill Seeker": "10% crime experience and skill gain."
-  },
-  "Candle Shop": {
-    "Warming Therapy": "Provides happiness boost.",
-    "Illumination": "50% awareness.",
-    "Calming Therapy": "Provides nerve boost.",
-    "Reinvigorating Therapy": "Provides energy boost.",
-    "Meditation": "View someone's true level if they are level holding."
-  },
-  "Car Dealership": {
-    "Test Drive": "Provides racing point.",
-    "Discount": "75% cost discount on car parts.",
-    "No Fees": "No item market fees.",
-    "Escape Button": "Escape button always enabled."
-  },
-  "Clothing Store": {
-    "Fashion Sense": "25% passive dexterity.",
-    "Armor Fit": "20% armor mitigation bonus.",
-    "Mugging Reduction": "75% opponent mugging reduction."
-  },
-  "Cruise Line Agency": {
-    "Extra Luggage": "2 extra travel items.",
-    "VIP Service": "3 extra travel items."
-  },
-  "Cyber Cafe": {
-    "Fast Coding": "50% virus coding time reduction."
-  },
-  "Detective Agency": {
-    "Arrest Ability": "Enables arresting opponents."
-  },
-  "Farm": {
-    "Hunting Reward": "25% hunting reward bonus."
-  },
-  "Firework Stand": {
-    "Awareness": "50% awareness.",
-    "Flame Thrower": "25% flame-thrower damage & accuracy."
-  },
-  "Fitness Center": {
-    "Gym Motivation": "50% reduction of happiness loss in gym.",
-    "Life Regeneration": "3% life regeneration per tick.",
-    "Gym Gains": "3% gym gains."
-  },
-  "Flower Shop": {
-    "Special Flowers": "Buy 5 additional special flowers abroad."
-  },
-  "Furniture Store": {
-    "Strength Boost": "25% passive strength.",
-    "Combat Training": "100% fist & kick damage."
-  },
-  "Game Shop": {
-    "Coding Efficiency": "50% virus coding time reduction.",
-    "Console Happiness": "100% console happiness."
-  },
-  "Gas Station": {
-    "Speed Boost": "25% passive speed.",
-    "Combat Healing": "Occasional 20% healing during combat.",
-    "Burn Resistance": "50% reduction in burning damage taken.",
-    "Burn Damage": "50% increase to burning damage dealt."
-  },
-  "Gents Strip Club": {
-    "Dexterity Boost": "25% passive dexterity.",
-    "Tyrosine Effect": "50% tyrosine effect & duration.",
-    "Gym Gains": "10% dexterity gym gains.",
-    "Melee Dodge": "1/4 chance to dodge melee attacks."
-  },
-  "Grocery Store": {
-    "Consumable Cooldown": "10% consumable cool down reduction.",
-    "Consumable Boost": "10% consumable boost."
-  },
-  "Gun Shop": {
-    "Ammo Discount": "20% discount on standard ammo cost.",
-    "Target Equipment": "Target equipment and ammo is always visible.",
-    "Extra Clip": "1 extra clip for guns during combat.",
-    "Weapon Damage": "10% primary & secondary weapon damage."
-  },
-  "Hair Salon": {
-    "Stealth Reduction": "Reduced enemy stealth.",
-    "Slashing Damage": "20% slashing weapon damage."
-  },
-  "Ladies Strip Club": {
-    "Defense Boost": "25% passive defense.",
-    "Serotonin Effect": "50% serotonin effectiveness & duration.",
-    "Gym Gains": "10% defense gym gains.",
-    "Melee Damage Reduction": "30% reduced damage from incoming melee attacks."
-  },
-  "Law Firm": {
-    "Bail Cost Reduction": "50% decreased bail costs.",
-    "Busting Efficiency": "Easier to bust more people at once.",
-    "Organized Crime Skill": "20% organized crime skill.",
-    "Bust Success Chance": "View success chance of potential busts."
-  },
-  "Lingerie Store": {
-    "Travel Items": "2 extra travel items.",
-    "Speed and Dexterity": "50% speed and dexterity when not wearing armor.",
-    "Property Upkeep": "Waive all property upkeep and staff costs.",
-    "Business Class Travel": "Provides free business class travel."
-  },
-  "Logistics Management": {
-    "Open Contracts": "Increases available open contracts from 3 to 5.",
-    "Travel Flexibility": "Allows traveling back to Torn from abroad while in hospital."
-  },
-  "Meat Warehouse": {
-    "Crime Penalty Reduction": "50% reduction in crime experience penalties.",
-    "Maximum Nerve": "10 maximum nerve.",
-    "Hunting Skill Gain": "25% hunting skill gain.",
-    "Life Regeneration": "3% life regeneration per tick."
-  },
-  "Mechanic Shop": {
-    "Car Part Discount": "75% cost discount on car parts.",
-    "Crash Protection": "Lose no car parts after crashing.",
-    "Driving Skill Gain": "50% driving skill gain."
-  },
-  "Mining Corporation": {
-    "Alcohol Cooldown": "30% alcohol cool down reduction.",
-    "Maximum Life": "10% maximum life."
-  },
-  "Music Store": {
-    "Gym Experience": "30% increased gym experience.",
-    "Stealth Reduction": "Reduced enemy stealth.",
-    "Stat Boost": "15% passive boost to all stats."
-  },
-  "Nightclub": {
-    "Overdose Reduction": "50% drug overdose reduction.",
-    "Education Continuity": "Education is unaffected by drug addiction."
-  },
-  "Oil Rig": {
-    "Interest Rate": "10% increase of Cayman Islands interest rate.",
-    "Banking Limit": "50% investment banking limit."
-  },
-  "Private Security Firm": {
-    "Flash Grenade": "50% flash grenade intensity.",
-    "Armor Bonus": "25% full armor set bonus."
-  },
-  "Property Broker": {
-    "Market Fees": "No item market fees.",
-    "Upgrade Cost Reduction": "10% property upgrade cost reduction."
-  },
-  "Pub": {
-    "Melee Damage": "10% melee weapon damage.",
-    "Alcohol Boost": "50% alcohol boost.",
-    "Maximum Nerve": "15 maximum nerve."
-  },
-  "Restaurant": {
-    "Melee Damage": "10% melee weapon damage.",
-    "Life Regeneration": "2% life regeneration per tick.",
-    "Consumable Cooldown": "25% consumable cool down reduction."
-  },
-  "Software Corporation": {
-    "Coding Time Reduction": "50% virus coding time reduction."
-  },
-  "Television Network": {
-    "Advertising Cost Reduction": "50% newspaper advertising cost reduction."
-  },
-  "Theater": {
-    "Spy Protection": "Cannot be targeted by spies.",
-    "Traveling Status": "Hidden traveling status & destination."
-  },
-  "Toy Shop": {
-    "Console Happiness": "100% console happiness.",
-    "Plushies": "5 extra plushies from abroad."
-  },
-  "Zoo": {
-    "Hunting Reward": "25% hunting reward.",
-    "Awareness": "70% awareness.",
-    "Accuracy": "3.00 accuracy."
-  }
+  "Adult Novelties": [
+    {
+      "name": "Blackmail",
+      "effect": "Money"
+    },
+    {
+      "name": "Voyeur",
+      "effect": "Erotic DVD"
+    },
+    {
+      "name": "Party Supplies",
+      "effect": "Pack of Trojans"
+    },
+    {
+      "name": "Bondage",
+      "effect": "25% enemy speed reduction"
+    },
+    {
+      "name": "Indecent",
+      "effect": "100% bonus to Erotic DVDs"
+    }
+  ],
+  "Specials": [
+    {
+      "name": "Dauntless",
+      "effect": "+2 nerve"
+    },
+    {
+      "name": "Free Ride",
+      "effect": "250 happiness for target"
+    },
+    {
+      "name": "Unflinching",
+      "effect": "10 maximum nerve"
+    },
+    {
+      "name": "Adrenaline Rush",
+      "effect": "25% epinephrine effect & duration"
+    },
+    {
+      "name": "Thrill Seeker",
+      "effect": "10% crime exp & skill gain"
+    }
+  ],
+  "Candle Shop": [
+    {
+      "name": "Warming Therapy",
+      "effect": "50 happiness"
+    },
+    {
+      "name": "Illumination",
+      "effect": "50% awareness"
+    },
+    {
+      "name": "Calming Therapy",
+      "effect": "2 nerve"
+    },
+    {
+      "name": "Reinvigorating Therapy",
+      "effect": "5 energy"
+    },
+    {
+      "name": "Meditation",
+      "effect": "View someone's true level if they are level holding"
+    }
+  ],
+  "Car Dealership": [
+    {
+      "name": "Test Drive",
+      "effect": "Racing point"
+    },
+    {
+      "name": "Discount parts",
+      "effect": "75% cost discount on car parts"
+    },
+    {
+      "name": "Salesman",
+      "effect": "Waive anonymous item market listing fee"
+    },
+    {
+      "name": "Two-Faced",
+      "effect": "15% fraud crime exp & skill gain"
+    },
+    {
+      "name": "Getaway car",
+      "effect": "Escape button always enabled"
+    }
+  ],
+  "Clothing Store": [
+    {
+      "name": "Fashion Show",
+      "effect": "Experience"
+    },
+    {
+      "name": "Nine to five",
+      "effect": "100 Endurance"
+    },
+    {
+      "name": "Activewear",
+      "effect": "+25% Passive Dexterity"
+    },
+    {
+      "name": "Secret pockets",
+      "effect": "+75% Mug Protection"
+    },
+    {
+      "name": "Tailoring",
+      "effect": "+20% Armor Bonus"
+    }
+  ],
+  "Cruise Line Agency": [
+    {
+      "name": "Bursar",
+      "effect": "25 casino tokens"
+    },
+    {
+      "name": "Portage",
+      "effect": "2 extra travel items"
+    },
+    {
+      "name": "R&R",
+      "effect": "Drug addiction reduction"
+    },
+    {
+      "name": "Destination Report",
+      "effect": "View stock analysis of all items at a selected country"
+    },
+    {
+      "name": "Freight",
+      "effect": "3 extra travel items"
+    }
+  ],
+  "Cyber Cafe": [
+    {
+      "name": "Ub3rg33k",
+      "effect": "50% virus coding time reduction"
+    },
+    {
+      "name": "Clone Data",
+      "effect": "Virus"
+    },
+    {
+      "name": "Proxy Hacking",
+      "effect": "Cancel a target's virus programming"
+    },
+    {
+      "name": "IP Tracing",
+      "effect": "View lister of anonymous bounties"
+    },
+    {
+      "name": "Financial Phishing",
+      "effect": "View details of someone's investment account"
+    }
+  ],
+  "Detective Agency": [
+    {
+      "name": "References",
+      "effect": "View someone's employment and faction history"
+    },
+    {
+      "name": "Deputized",
+      "effect": "Able to Arrest those who meet the required threshold after defeat"
+    },
+    {
+      "name": "Friend or Foe",
+      "effect": "See who's friended / blacklisted you"
+    },
+    {
+      "name": "Watchlist",
+      "effect": "Anonymously extend a target's flight time by 1:30 - 2:00 hours"
+    },
+    {
+      "name": "Most Wanted",
+      "effect": "View a list of people with the highest wanted rewards"
+    }
+  ],
+  "Farm": [
+    {
+      "name": "Fullfillment",
+      "effect": "50 happiness"
+    },
+    {
+      "name": "Animal Instinct",
+      "effect": "25% hunting reward"
+    },
+    {
+      "name": "Special K",
+      "effect": "Ketamine drug"
+    },
+    {
+      "name": "Fertilizer",
+      "effect": "Small Explosive Device"
+    },
+    {
+      "name": "Early Riser",
+      "effect": "7 energy"
+    }
+  ],
+  "Firework Stand": [
+    {
+      "name": "Audaciousness",
+      "effect": "+2 Nerve"
+    },
+    {
+      "name": "Illumination",
+      "effect": "+50% Awareness"
+    },
+    {
+      "name": "Pyromania",
+      "effect": "+25% Flamethrower Damage, +10 Flamethrower Accuracy"
+    },
+    {
+      "name": "Explosives Expert",
+      "effect": "Random bomb parts (Temporarily Unavailable)"
+    },
+    {
+      "name": "Inferno",
+      "effect": "Random incendiary ammunition, supplying currently equipped weapons if applicable"
+    }
+  ],
+  "Fitness Center": [
+    {
+      "name": "Healthy Mind",
+      "effect": "30 minute education time reduction"
+    },
+    {
+      "name": "Goal Oriented",
+      "effect": "50% reduction of happiness loss in gym"
+    },
+    {
+      "name": "Roid Rage",
+      "effect": "Strength"
+    },
+    {
+      "name": "Athlete",
+      "effect": "3% life regeneration per tick"
+    },
+    {
+      "name": "Training Regime",
+      "effect": "3% gym gains"
+    }
+  ],
+  "Flower Shop": [
+    {
+      "name": "Rare Import",
+      "effect": "Special flower"
+    },
+    {
+      "name": "Cultivation",
+      "effect": "25% illegal production success & gain (Temporarily Unavailable)"
+    },
+    {
+      "name": "Herbal Cleansing",
+      "effect": "Drug addiction reduction"
+    },
+    {
+      "name": "Over Capacity",
+      "effect": "Buy 5 additional special flowers abroad"
+    },
+    {
+      "name": "Floral Contacts",
+      "effect": "View stock analysis of flowers in all countries"
+    }
+  ],
+  "Furniture Store": [
+    {
+      "name": "Coffee Break",
+      "effect": "3 energy"
+    },
+    {
+      "name": "Heavy Lifting",
+      "effect": "Strength"
+    },
+    {
+      "name": "Removal",
+      "effect": "15% theft crime exp & skill gain"
+    },
+    {
+      "name": "Beefcake",
+      "effect": "25% passive strength"
+    },
+    {
+      "name": "Brute Force",
+      "effect": "100% fist & kick damage"
+    }
+  ],
+  "Game Shop": [
+    {
+      "name": "Ub3rg33k",
+      "effect": "50% virus coding time reduction"
+    },
+    {
+      "name": "Early Release",
+      "effect": "Money"
+    },
+    {
+      "name": "Gamer",
+      "effect": "100% console happiness"
+    },
+    {
+      "name": "Power Levelling",
+      "effect": "View progress to your next level"
+    },
+    {
+      "name": "Overpowered",
+      "effect": "1 nerve, 5 energy, 50 happiness"
+    }
+  ],
+  "Gas Station": [
+    {
+      "name": "Molotov Cocktail",
+      "effect": "+1 Molotov Cocktail"
+    },
+    {
+      "name": "Fueled",
+      "effect": "+25% bonus to Speed"
+    },
+    {
+      "name": "Cauterize",
+      "effect": "Occasional 20% health regeneration (10% chance per turn)"
+    },
+    {
+      "name": "Fireproof",
+      "effect": "50% reduction to Burning damage received"
+    },
+    {
+      "name": "Blaze of Glory",
+      "effect": "50% bonus to Burning damage dealt"
+    }
+  ],
+  "Gents Strip Club": [
+    {
+      "name": "Happy Ending",
+      "effect": "+50 Happy"
+    },
+    {
+      "name": "Dancer's Flair",
+      "effect": "+25% Passive Dexterity"
+    },
+    {
+      "name": "Supple",
+      "effect": "+50% Tyrosine effect & duration"
+    },
+    {
+      "name": "Pilates",
+      "effect": "+10% Dexterity gym gains"
+    },
+    {
+      "name": "No Touching",
+      "effect": "1/4 chance to dodge melee attacks"
+    }
+  ],
+  "Grocery Store": [
+    {
+      "name": "Bagged Down",
+      "effect": "Bag of candy"
+    },
+    {
+      "name": "Fast Metabolism",
+      "effect": "10% consumable cooldown"
+    },
+    {
+      "name": "Bottled Up",
+      "effect": "Bottle of alcohol"
+    },
+    {
+      "name": "Absorption",
+      "effect": "10% consumable boost"
+    },
+    {
+      "name": "Canned in",
+      "effect": "Can of (premium) Energy Drink"
+    }
+  ],
+  "Gun Shop": [
+    {
+      "name": "Sales Discount",
+      "effect": "20% discount on standard ammo"
+    },
+    {
+      "name": "Surplus",
+      "effect": "Random special ammunition, supplying currently equipped weapons if applicable"
+    },
+    {
+      "name": "Skilled Analysis",
+      "effect": "Target equipment and ammo is always visible"
+    },
+    {
+      "name": "Bandoleer",
+      "effect": "1 extra clip for guns during attacks"
+    },
+    {
+      "name": "Firearms Expert",
+      "effect": "10% primary & secondary weapon damage"
+    }
+  ],
+  "Hair Salon": [
+    {
+      "name": "Debate",
+      "effect": "Experience"
+    },
+    {
+      "name": "Gossip",
+      "effect": "View someone's money on hand"
+    },
+    {
+      "name": "Rumors",
+      "effect": "Reduced enemy stealth"
+    },
+    {
+      "name": "Cutting corners",
+      "effect": "30 minute education time reduction"
+    },
+    {
+      "name": "Sweeney's Revenge",
+      "effect": "20% slashing weapon damage"
+    }
+  ],
+  "Ladies Strip Club": [
+    {
+      "name": "Hot Flush",
+      "effect": "+50 Happy"
+    },
+    {
+      "name": "Hench",
+      "effect": "+25% Passive Defense"
+    },
+    {
+      "name": "Hormonal",
+      "effect": "+50% Serotonin effect & duration"
+    },
+    {
+      "name": "Boxercise",
+      "effect": "+10% Defense gym gains"
+    },
+    {
+      "name": "Hardbody",
+      "effect": "30% melee damage mitigation"
+    }
+  ],
+  "Law Firm": [
+    {
+      "name": "Bail Bondsman",
+      "effect": "50% decreased bail costs"
+    },
+    {
+      "name": "Background Check",
+      "effect": "View someone's stats"
+    },
+    {
+      "name": "Closing Argument",
+      "effect": "Easier to bust more people at once"
+    },
+    {
+      "name": "Loophole",
+      "effect": "20% organised crime skill"
+    },
+    {
+      "name": "Educated Decisions",
+      "effect": "View success chance of potential busts"
+    }
+  ],
+  "Lingerie Store": [
+    {
+      "name": "Nine to Five",
+      "effect": "100 endurance"
+    },
+    {
+      "name": "Concealment",
+      "effect": "2 extra travel items"
+    },
+    {
+      "name": "Born Free",
+      "effect": "+50% speed and dexterity when not wearing armor"
+    },
+    {
+      "name": "Simp",
+      "effect": "Waive all property upkeep and staff costs"
+    },
+    {
+      "name": "Sex Appeal",
+      "effect": "Provides Free Business Class Travel"
+    }
+  ],
+  "Logistics Management": [
+    {
+      "name": "Efficiency",
+      "effect": "Speed"
+    },
+    {
+      "name": "Organized",
+      "effect": "Increases available open mission contracts from 3 to 5"
+    },
+    {
+      "name": "Repatriated",
+      "effect": "Allows traveling back to Torn from abroad while in hosp"
+    },
+    {
+      "name": "Contraband",
+      "effect": "Large quantity of a foreign item"
+    },
+    {
+      "name": "Logistics Report",
+      "effect": "Targeted company productivity boost"
+    }
+  ],
+  "Meat Warehouse": [
+    {
+      "name": "Blood Thirst",
+      "effect": "+2 nerve"
+    },
+    {
+      "name": "Blood Splatter",
+      "effect": "50% reduction in crime penalty"
+    },
+    {
+      "name": "Carnage",
+      "effect": "10 maximum nerve"
+    },
+    {
+      "name": "Huntsman",
+      "effect": "25% hunting skill gain"
+    },
+    {
+      "name": "Vampiric",
+      "effect": "3% life regeneration per tick"
+    }
+  ],
+  "Mechanic Shop": [
+    {
+      "name": "Machinist",
+      "effect": "Racing point"
+    },
+    {
+      "name": "Discount Parts",
+      "effect": "75% cost discount on car parts"
+    },
+    {
+      "name": "Junkyard Dog",
+      "effect": "Random car"
+    },
+    {
+      "name": "Refurbish",
+      "effect": "Lose no car parts after crashing"
+    },
+    {
+      "name": "Driver",
+      "effect": "50% driving skill gain"
+    }
+  ],
+  "Mining Corporation": [
+    {
+      "name": "Mining Boom",
+      "effect": "Random excavation equipment"
+    },
+    {
+      "name": "Thirsty Work",
+      "effect": "30% alcohol cooldown reduction"
+    },
+    {
+      "name": "Rock Salt",
+      "effect": "Defense"
+    },
+    {
+      "name": "Essential Salts",
+      "effect": "10% maximum life"
+    },
+    {
+      "name": "Preserved Meat",
+      "effect": "Boost current life to 150% of maximum"
+    }
+  ],
+  "Music Store": [
+    {
+      "name": "Ambience",
+      "effect": "50 happiness"
+    },
+    {
+      "name": "Well Tuned",
+      "effect": "30% increased gym experience"
+    },
+    {
+      "name": "High-fidelity",
+      "effect": "Reduced enemy stealth"
+    },
+    {
+      "name": "Deafened",
+      "effect": "Maximum stealth"
+    },
+    {
+      "name": "The Score",
+      "effect": "+15% passive on all stats"
+    }
+  ],
+  "Nightclub": [
+    {
+      "name": "Criminal Connections",
+      "effect": "Experience"
+    },
+    {
+      "name": "Target Market",
+      "effect": "+15% illicit service exp and skill gain"
+    },
+    {
+      "name": "Suppression",
+      "effect": "Drug addiction reduction"
+    },
+    {
+      "name": "Tolerance",
+      "effect": "50% drug overdose chance reduction"
+    },
+    {
+      "name": "Restraint",
+      "effect": "Education is unaffected by drug addiction"
+    }
+  ],
+  "Oil Rig": [
+    {
+      "name": "Danger Money",
+      "effect": "Money"
+    },
+    {
+      "name": "Embargo",
+      "effect": "Halve a target's happiness"
+    },
+    {
+      "name": "Oil Mogul",
+      "effect": "Reduce bank investment time by 1 hour"
+    },
+    {
+      "name": "Tax Haven",
+      "effect": "10% increase of Cayman Islands interest rate"
+    },
+    {
+      "name": "Fat Cat",
+      "effect": "50% investment banking limit"
+    }
+  ],
+  "Private Security Firm": [
+    {
+      "name": "Off the Grid",
+      "effect": "72 hour bounty protection"
+    },
+    {
+      "name": "Tactical Breach",
+      "effect": "+50% flash grenade intensity"
+    },
+    {
+      "name": "Open Arsenal",
+      "effect": "Primary or Secondary weapon"
+    },
+    {
+      "name": "Regulation",
+      "effect": "25% full set armor mitigation bonus"
+    },
+    {
+      "name": "Mercenary",
+      "effect": "3 mission credits"
+    }
+  ],
+  "Property Broker": [
+    {
+      "name": "Commission",
+      "effect": "Money"
+    },
+    {
+      "name": "Job Satisfaction",
+      "effect": "50 happiness"
+    },
+    {
+      "name": "Vendor",
+      "effect": "Waive anonymous item market listing fee"
+    },
+    {
+      "name": "Insider Trading",
+      "effect": "Random property"
+    },
+    {
+      "name": "Interior Connections",
+      "effect": "10% property upgrade cost reduction"
+    }
+  ],
+  "Pub": [
+    {
+      "name": "Pub Lunch",
+      "effect": "3 energy"
+    },
+    {
+      "name": "Drunken Master",
+      "effect": "10% melee weapon damage"
+    },
+    {
+      "name": "Liquid Courage",
+      "effect": "Refill nerve bar"
+    },
+    {
+      "name": "Lightweight",
+      "effect": "50% bottle of alcohol boost"
+    },
+    {
+      "name": "Buzzed",
+      "effect": "+15 maximum nerve"
+    }
+  ],
+  "Restaurant": [
+    {
+      "name": "Free Meals",
+      "effect": "3 energy"
+    },
+    {
+      "name": "Butcher",
+      "effect": "10% melee weapon damage"
+    },
+    {
+      "name": "Flambayed",
+      "effect": "Flamethrower"
+    },
+    {
+      "name": "Healthy Diet",
+      "effect": "2% life regeneration per tick"
+    },
+    {
+      "name": "Professional Metabolism",
+      "effect": "25% consumable cooldown reduction"
+    }
+  ],
+  "Software Corporation": [
+    {
+      "name": "Ub3rg33k",
+      "effect": "50% virus coding time reduction"
+    },
+    {
+      "name": "Proxy Hacking",
+      "effect": "Cancel a target's virus programming"
+    },
+    {
+      "name": "Intricate Hack",
+      "effect": "Steals 1-3% of a company's funds"
+    },
+    {
+      "name": "Hack the Planet",
+      "effect": "15% cybercrime success & skill gain"
+    },
+    {
+      "name": "Corporate Espionage",
+      "effect": "View financial details of a company"
+    }
+  ],
+  "Television Network": [
+    {
+      "name": "Propaganda",
+      "effect": "1 faction respect"
+    },
+    {
+      "name": "Scoop",
+      "effect": "50% newspaper advertising cost"
+    },
+    {
+      "name": "Inside Story",
+      "effect": "View someone's stats & money"
+    },
+    {
+      "name": "Bad Publicity",
+      "effect": "25% extortion success rate and skill gain (Temporarily Unavailable)"
+    },
+    {
+      "name": "Press Pass",
+      "effect": "Receive special privileges"
+    }
+  ],
+  "Theater": [
+    {
+      "name": "Stagecraft",
+      "effect": "Experience"
+    },
+    {
+      "name": "Dramatics",
+      "effect": "Maximum stealth"
+    },
+    {
+      "name": "Masked",
+      "effect": "Cannot be targeted by spies"
+    },
+    {
+      "name": "Twinlike",
+      "effect": "15% counterfeiting crime exp & skill gain"
+    },
+    {
+      "name": "Disguised",
+      "effect": "Hidden traveling status & destination"
+    }
+  ],
+  "Toy Shop": [
+    {
+      "name": "Memory Lane",
+      "effect": "50 happiness"
+    },
+    {
+      "name": "Jumble Sale",
+      "effect": "Special plushie"
+    },
+    {
+      "name": "Gamer",
+      "effect": "100% console happiness"
+    },
+    {
+      "name": "Over Capacity",
+      "effect": "Able to bring back +5 plushies from abroad"
+    },
+    {
+      "name": "Toy Importer",
+      "effect": "View stock analysis of plushies in all countries"
+    }
+  ],
+  "Zoo": [
+    {
+      "name": "Fulfillment",
+      "effect": "50 happiness"
+    },
+    {
+      "name": "Animal Instinct",
+      "effect": "25% hunting reward"
+    },
+    {
+      "name": "Special K",
+      "effect": "Ketamine drug"
+    },
+    {
+      "name": "Eye of the Tiger",
+      "effect": "70% Awareness"
+    },
+    {
+      "name": "Seasoned Poacher",
+      "effect": "+3.00 Accuracy"
+    }
+  ]
 }
