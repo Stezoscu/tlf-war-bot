@@ -314,16 +314,16 @@ async def check_points_price(interaction: discord.Interaction):
         return
 
     try:
-        url = f"https://api.torn.com/market?selections=points&key={api_key}"
+        url = f"https://api.torn.com/market/points?key={api_key}"
         response = requests.get(url)
         data = response.json()
 
-        if "points" not in data or not data["points"]:
+        if "cost" not in data:
             await interaction.response.send_message(f"❌ Error fetching point price. API response: {data}")
             return
 
-        price = int(data["points"][0]["cost"])
-        quantity = data["points"][0].get("quantity", "N/A")
+        price = int(data["cost"])
+        quantity = data.get("quantity", "N/A")
 
         await interaction.response.send_message(
             f"📈 **Current Point Price:** {price:n} T$ per point\n📦 Quantity Available: {quantity}"
@@ -331,6 +331,7 @@ async def check_points_price(interaction: discord.Interaction):
 
     except Exception as e:
         await interaction.response.send_message(f"❌ Error fetching price: {e}")
+
         
 
 @tasks.loop(minutes=5)
