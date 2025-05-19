@@ -314,7 +314,7 @@ async def check_points_price(interaction: discord.Interaction):
         return
 
     try:
-        url = f"https://api.torn.com/market?selections=points&key={api_key}"
+        url = f"https://api.torn.com/v2/market?selections=points&key={api_key}"
         response = requests.get(url)
         data = response.json()
         price = int(data["points"][0]["cost"])
