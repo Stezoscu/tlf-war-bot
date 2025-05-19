@@ -318,31 +318,20 @@ async def check_points_price(interaction: discord.Interaction):
         response = requests.get(url)
         data = response.json()
 
-        # Check the pointsmarket structure
-        if "pointsmarket" not in data:
-            await interaction.response.send_message("❌ No 'pointsmarket' field found in API response.")
+        if "pointsmarket" not in data or not data["pointsmarket"]:
+            await interaction.response.send_message("❌ No points data found.")
             return
 
-        if not isinstance(data["pointsmarket"], list) or len(data["pointsmarket"]) == 0:
-            await interaction.response.send_message("❌ No point listings currently found.")
-            return
-
-        # Attempt to extract the cheapest listing
-        first_listing = data["pointsmarket"][0]
-        price = first_listing.get("cost")
-        quantity = first_listing.get("quantity", "N/A")
-
-        if price is None or not isinstance(price, int):
-            await interaction.response.send_message("❌ Invalid price data from API.")
-            return
+        lowest_offer = min(data["pointsmarket"].values(), key=lambda x: x["cost"])
+        price = lowest_offer["cost"]
+        quantity = lowest_offer["quantity"]
 
         await interaction.response.send_message(
-            f"📈 **Current Point Price:** {price:n} T$ per point\n📦 Quantity Available: {quantity}"
+            f"📈 **Current Lowest Point Price:** {price:n} T$ per point\n📦 Quantity Available: {quantity}"
         )
 
     except Exception as e:
         await interaction.response.send_message(f"❌ Error fetching price: {e}")
-
         
 
 @tasks.loop(minutes=5)
@@ -359,17 +348,23 @@ async def check_point_market():
         response = requests.get(url)
         data = response.json()
 
-        price = int(data["pointsmarket"][0]["cost"])
+        if "pointsmarket" not in data or not data["pointsmarket"]:
+            print("[Error] No pointsmarket data found.")
+            return
+
+        lowest_offer = min(data["pointsmarket"].values(), key=lambda x: x["cost"])
+        price = lowest_offer["cost"]
 
         channel = discord.utils.get(bot.get_all_channels(), name="trading_alerts")
         if channel:
             if thresholds["buy"] and price <= thresholds["buy"]:
-                await channel.send(f"💰 **Points are cheap!** Current price: **{price:n}** T$ (≤ {thresholds['buy']})")
+                await channel.send(f"💰 **Points are cheap!** {price:n} T$ (≤ {thresholds['buy']})")
             if thresholds["sell"] and price >= thresholds["sell"]:
-                await channel.send(f"🔥 **Points are expensive!** Current price: **{price:n}** T$ (≥ {thresholds['sell']})")
+                await channel.send(f"🔥 **Points are expensive!** {price:n} T$ (≥ {thresholds['sell']})")
 
     except Exception as e:
         print(f"[Error checking point market] {e}")
+
 
 @bot.event
 async def on_ready():
