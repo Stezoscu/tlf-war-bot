@@ -387,7 +387,7 @@ async def check_point_market():
         log_point_price(price)
 
 
-        channel = discord.utils.get(bot.get_all_channels(), name="trading_alerts")
+        channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
         if channel:
             if thresholds["buy"] and price <= thresholds["buy"]:
                 await channel.send(f"💰 **Points are cheap!** {price:n} T$ (≤ {thresholds['buy']})")
@@ -435,7 +435,7 @@ async def post_hourly_point_graph():
         file = discord.File(buf, filename="points_graph.png")
         plt.close()
 
-        channel = discord.utils.get(bot.get_all_channels(), name="trading_alerts")
+        channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
         if channel:
             await channel.send(content="🕒 **Hourly Point Price Overview**", file=file)
 
