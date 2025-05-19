@@ -223,7 +223,57 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
         await interaction.response.send_message(f"❌ Error: {e}")
 
 # (Gear/job perk commands continue unchanged...)
+# ---- Gear perk commands ----
+@bot.tree.command(name="check_gear_perk", description="Look up a gear perk and get its description.")
+@app_commands.describe(perk_name="Name of the gear perk to look up")
+async def check_gear_perk(interaction: discord.Interaction, perk_name: str):
+    perk = next((name for name in gear_perks if name.lower() == perk_name.lower()), None)
+    if perk:
+        await interaction.response.send_message(f"🔍 **{perk}**: {gear_perks[perk]}")
+    else:
+        await interaction.response.send_message(f"❌ Perk '{perk_name}' not found.")
 
+@bot.tree.command(name="list_gear_perks", description="List all gear perks.")
+async def list_gear_perks(interaction: discord.Interaction):
+    perk_list = "\n".join(sorted(gear_perks.keys()))
+    await interaction.response.send_message(f"📜 **Gear Perks List**:\n```{perk_list}```")
+
+# ---- Job perk commands ----
+@bot.tree.command(name="check_job_perk", description="Look up perks for a specific job.")
+@app_commands.describe(job_name="Name of the job (as in /list_jobs)")
+async def check_job_perk(interaction: discord.Interaction, job_name: str):
+    matched_job = next((j for j in job_perks if j.lower() == job_name.lower()), None)
+    if not matched_job:
+        await interaction.response.send_message(f"❌ Job '{job_name}' not found. Try /list_jobs for valid names.")
+        return
+
+    perks = job_perks[matched_job]
+    response = f"🧾 **Perks for {matched_job}:**\n"
+    for perk in perks:
+        response += f"• **{perk['name']}** – {perk['effect']}\n"
+    await interaction.response.send_message(response)
+
+@bot.tree.command(name="list_jobs", description="Show all jobs with perks available.")
+async def list_jobs(interaction: discord.Interaction):
+    job_list = "\n".join(sorted(job_perks.keys()))
+    await interaction.response.send_message(f"📋 **Available Jobs:**\n```{job_list}```")
+
+@bot.tree.command(name="list_job_perks", description="List all job perks in a thread.")
+async def list_job_perks(interaction: discord.Interaction):
+    await interaction.response.send_message("📖 Sending all job perks in a thread...")
+
+    thread = await interaction.channel.create_thread(
+        name="📚 Job Perks Reference",
+        type=discord.ChannelType.public_thread,
+        message=interaction.original_response()
+    )
+
+    for job, perks in job_perks.items():
+        perk_lines = [f"**{perk['name']}** – {perk['effect']}" for perk in perks]
+        msg = f"**{job}**\n" + "\n".join(perk_lines)
+        await thread.send(msg)
+
+        
 @bot.event
 async def on_ready():
     try:
