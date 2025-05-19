@@ -306,25 +306,31 @@ async def set_points_sell(interaction: discord.Interaction, price: int):
     save_thresholds(thresholds)
     await interaction.response.send_message(f"✅ Sell alert set: notify if points rise above **{price:n}** T$", ephemeral=True)
 
-@bot.tree.command(name="check_points_price", description="Check the current market price of points.")
+@bot.tree.command(name="check_points_price", description="Check the current market price of points")
 async def check_points_price(interaction: discord.Interaction):
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
-        await interaction.response.send_message("❌ Torn API key not configured.", ephemeral=True)
+        await interaction.response.send_message("❌ Torn API key not set.")
         return
 
     try:
-        url = f"https://api.torn.com/v2/market?selections=points&key={api_key}"
+        url = f"https://api.torn.com/market?selections=points&key={api_key}"
         response = requests.get(url)
         data = response.json()
+
+        if "points" not in data or not data["points"]:
+            await interaction.response.send_message(f"❌ Error fetching point price. API response: {data}")
+            return
+
         price = int(data["points"][0]["cost"])
-        quantity = int(data["points"][0]["quantity"])
+        quantity = data["points"][0].get("quantity", "N/A")
 
         await interaction.response.send_message(
-            f"📈 **Current Points Market Price**\n💰 Price: **{price:n}** T$\n📦 Available: **{quantity} points**"
+            f"📈 **Current Point Price:** {price:n} T$ per point\n📦 Quantity Available: {quantity}"
         )
+
     except Exception as e:
-        await interaction.response.send_message(f"❌ Error fetching price: {e}", ephemeral=True)
+        await interaction.response.send_message(f"❌ Error fetching price: {e}")
         
 
 @tasks.loop(minutes=5)
