@@ -215,9 +215,19 @@ async def list_job_perks(interaction: discord.Interaction):
 @bot.event
 async def on_ready():
     try:
-        guild = discord.Object(id=1344056482668478557)
+        guild = discord.Object(id=1344056482668478557)  # Your server's ID
+
+        # Force re-register all slash commands
+        bot.tree.add_command(warpredict, guild=guild)
+        bot.tree.add_command(autopredict, guild=guild)
+        bot.tree.add_command(check_gear_perk, guild=guild)
+        bot.tree.add_command(list_gear_perks, guild=guild)
+        bot.tree.add_command(check_job_perk, guild=guild)
+        bot.tree.add_command(list_job_perks, guild=guild)
+        bot.tree.add_command(list_jobs, guild=guild)
+
         synced = await bot.tree.sync(guild=guild)
-        print(f"🔁 Synced {len(synced)} commands to guild.")
+        print(f"🔁 Force-synced {len(synced)} commands to guild {guild.id}")
     except Exception as e:
         print(f"❌ Error syncing commands: {e}")
     print(f"✅ Bot is ready. Logged in as {bot.user}")
