@@ -10,6 +10,23 @@ from io import BytesIO
 import json
 from datetime import datetime
 from pathlib import Path
+from discord.ext import tasks
+import asyncio
+
+# Path to store thresholds
+THRESHOLDS_FILE = "data/point_thresholds.json"
+
+# Load or initialize thresholds
+def load_thresholds():
+    try:
+        with open(THRESHOLDS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"buy": None, "sell": None}
+
+def save_thresholds(thresholds):
+    with open(THRESHOLDS_FILE, "w", encoding="utf-8") as f:
+        json.dump(thresholds, f, indent=4)
 
 # Load gear perks from JSON
 with open("data/gear_perks.json", "r", encoding="utf-8") as f:
@@ -273,7 +290,50 @@ async def list_job_perks(interaction: discord.Interaction):
         msg = f"**{job}**\n" + "\n".join(perk_lines)
         await thread.send(msg)
 
+@bot.tree.command(name="set_points_buy", description="Set alert if point price goes below this value")
+@app_commands.describe(price="Alert if point price drops below this amount")
+async def set_points_buy(interaction: discord.Interaction, price: int):
+    thresholds = load_thresholds()
+    thresholds["buy"] = price
+    save_thresholds(thresholds)
+    await interaction.response.send_message(f"✅ Buy alert set: notify if points fall below **{price:n}** T$", ephemeral=True)
+
+@bot.tree.command(name="set_points_sell", description="Set alert if point price goes above this value")
+@app_commands.describe(price="Alert if point price rises above this amount")
+async def set_points_sell(interaction: discord.Interaction, price: int):
+    thresholds = load_thresholds()
+    thresholds["sell"] = price
+    save_thresholds(thresholds)
+    await interaction.response.send_message(f"✅ Sell alert set: notify if points rise above **{price:n}** T$", ephemeral=True)
+
         
+
+@tasks.loop(minutes=5)
+async def check_point_market():
+    await bot.wait_until_ready()
+
+    thresholds = load_thresholds()
+    api_key = os.getenv("TORN_API_KEY")
+    if not api_key:
+        return
+
+    try:
+        url = f"https://api.torn.com/market?selections=points&key={api_key}"
+        response = requests.get(url)
+        data = response.json()
+
+        price = int(data["points"][0]["cost"])
+
+        channel = discord.utils.get(bot.get_all_channels(), name="trading_alerts")
+        if channel:
+            if thresholds["buy"] and price <= thresholds["buy"]:
+                await channel.send(f"💰 **Points are cheap!** Current price: **{price:n}** T$ (≤ {thresholds['buy']})")
+            if thresholds["sell"] and price >= thresholds["sell"]:
+                await channel.send(f"🔥 **Points are expensive!** Current price: **{price:n}** T$ (≥ {thresholds['sell']})")
+
+    except Exception as e:
+        print(f"[Error checking point market] {e}")
+
 @bot.event
 async def on_ready():
     try:
@@ -285,11 +345,15 @@ async def on_ready():
         bot.tree.add_command(check_job_perk, guild=guild)
         bot.tree.add_command(list_job_perks, guild=guild)
         bot.tree.add_command(list_jobs, guild=guild)
+        bot.tree.add_command(set_points_buy, guild=guild)
+        bot.tree.add_command(set_points_sell, guild=guild)
 
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild {guild.id}")
     except Exception as e:
         print(f"❌ Error syncing commands: {e}")
+    
+    check_point_market.start()
     print(f"✅ Bot is ready. Logged in as {bot.user}")
 
 bot.run(os.getenv("BOT_TOKEN"))
