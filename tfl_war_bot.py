@@ -18,6 +18,10 @@ THRESHOLDS_FILE = "data/point_thresholds.json"
 
 POINT_HISTORY_FILE = "data/point_price_history.json"
 
+# Add this at the top of your script
+POINTS_SILENT_CHECKS = 0
+
+
 def log_point_price(price):
     log_entry = {"timestamp": int(time.time()), "price": price}
 
@@ -361,6 +365,9 @@ async def check_points_price(interaction: discord.Interaction):
 async def check_point_market():
     await bot.wait_until_ready()
 
+    global POINTS_SILENT_CHECKS
+    alert_triggered = False
+
     thresholds = load_thresholds()
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
@@ -384,8 +391,17 @@ async def check_point_market():
         if channel:
             if thresholds["buy"] and price <= thresholds["buy"]:
                 await channel.send(f"💰 **Points are cheap!** {price:n} T$ (≤ {thresholds['buy']})")
-            if thresholds["sell"] and price >= thresholds["sell"]:
+                alert_triggered = True
+                POINTS_SILENT_CHECKS = 0
+            elif thresholds["sell"] and price >= thresholds["sell"]:
                 await channel.send(f"🔥 **Points are expensive!** {price:n} T$ (≥ {thresholds['sell']})")
+                alert_triggered = True
+                POINTS_SILENT_CHECKS = 0
+            else:
+                POINTS_SILENT_CHECKS += 1
+                if POINTS_SILENT_CHECKS >= 15:
+                    await channel.send(f"🔍 **Points market check**: {price:n} T$ (no alerts triggered)")
+                    POINTS_SILENT_CHECKS = 0
 
     except Exception as e:
         print(f"[Error checking point market] {e}")
