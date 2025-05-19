@@ -306,6 +306,25 @@ async def set_points_sell(interaction: discord.Interaction, price: int):
     save_thresholds(thresholds)
     await interaction.response.send_message(f"✅ Sell alert set: notify if points rise above **{price:n}** T$", ephemeral=True)
 
+@bot.tree.command(name="check_points_price", description="Check the current market price of points.")
+async def check_points_price(interaction: discord.Interaction):
+    api_key = os.getenv("TORN_API_KEY")
+    if not api_key:
+        await interaction.response.send_message("❌ Torn API key not configured.", ephemeral=True)
+        return
+
+    try:
+        url = f"https://api.torn.com/market?selections=points&key={api_key}"
+        response = requests.get(url)
+        data = response.json()
+        price = int(data["points"][0]["cost"])
+        quantity = int(data["points"][0]["quantity"])
+
+        await interaction.response.send_message(
+            f"📈 **Current Points Market Price**\n💰 Price: **{price:n}** T$\n📦 Available: **{quantity} points**"
+        )
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Error fetching price: {e}", ephemeral=True)
         
 
 @tasks.loop(minutes=5)
@@ -347,6 +366,7 @@ async def on_ready():
         bot.tree.add_command(list_jobs, guild=guild)
         bot.tree.add_command(set_points_buy, guild=guild)
         bot.tree.add_command(set_points_sell, guild=guild)
+        bot.tree.add_command(check_points_price, guild=guild)
 
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild {guild.id}")
