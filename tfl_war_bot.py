@@ -554,7 +554,7 @@ async def item_price_graph(interaction: discord.Interaction, item: str):
     await interaction.followup.send(file=file)
 
 @bot.tree.command(name="clean_item_thresholds", description="Remove unused or invalid keys from item thresholds")
-async def clean_item_thresholds(interaction: discord.Interaction):
+async def clean_item_thresholds_command(interaction: discord.Interaction):
     path = "/mnt/item_thresholds.json"
     try:
         with open(path, "r", encoding="utf-8") as f:
