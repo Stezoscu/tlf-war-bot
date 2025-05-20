@@ -592,36 +592,30 @@ async def check_item_prices():
     if not api_key:
         return
 
-    thresholds_path = ITEM_THRESHOLD_FILE
     try:
-        with open(thresholds_path, "r", encoding="utf-8") as f:
+        with open("/mnt/item_thresholds.json", "r", encoding="utf-8") as f:
             thresholds = json.load(f)
     except FileNotFoundError:
         thresholds = {}
-
-    item_ids = {
-        "xanax": "258",
-        "erotic dvds": "264",
-        "feathery hotel coupon": "269",
-        "poison mistletoe": "2067"
-    }
 
     channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
     if not channel:
         print("⚠️ Channel 'trading-alerts' not found.")
         return
 
-    for name, item_id in item_ids.items():
+    for name, item_id in ITEM_IDS.items():
         try:
-            url = f"https://api.torn.com/market/{item_id}?key={api_key}"
+            url = f"https://api.torn.com/v2/market/{item_id}?selections=itemmarket&key={api_key}"
             response = requests.get(url)
             data = response.json()
 
-            if "bazaar" not in data or not data["bazaar"]:
+            listings = data.get("itemmarket", {}).get("listings", [])
+            if not listings:
                 continue
 
-            lowest = data["bazaar"][0]
-            price = int(lowest["cost"])
+            # Get lowest price from listings
+            lowest = min(listings, key=lambda x: x["price"])
+            price = int(lowest["price"])
 
             # Alert logic
             item_threshold = thresholds.get(name, {})
@@ -637,7 +631,7 @@ async def check_item_prices():
                 await channel.send(alert_msg)
 
         except Exception as e:
-            print(f"[Error checking price for {name}] {e}")
+            print(f"[Error checking itemmarket price for {name}] {e}")
 
 
 @tasks.loop(hours=12)
