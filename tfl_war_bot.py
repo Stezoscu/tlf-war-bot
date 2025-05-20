@@ -435,30 +435,32 @@ async def check_points_price(interaction: discord.Interaction):
 @bot.tree.command(name="set_item_sell_price", description="Set high alert sell price for an item")
 @app_commands.describe(item="Name of the item (e.g., Xanax)", price="Price to trigger alert if exceeded")
 async def set_item_sell_price(interaction: discord.Interaction, item: str, price: int):
+    item_title = item.title()
+    if item_title not in TRACKED_ITEMS:
+        await interaction.response.send_message(f"❌ Unsupported item. Try: {', '.join(TRACKED_ITEMS)}", ephemeral=True)
+        return
+
+    internal_key = TRACKED_ITEMS[item_title]
     thresholds = load_item_thresholds()
-    item_lower = item.lower()
-
-    if item_lower not in thresholds:
-        thresholds[item_lower] = {"buy": None, "sell": price}
-    else:
-        thresholds[item_lower]["sell"] = price
-
+    thresholds[internal_key]["sell"] = price
     save_item_thresholds(thresholds)
-    await interaction.response.send_message(f"📈 Set **sell** alert for **{item}** at **{price:n}** T$", ephemeral=True)
+
+    await interaction.response.send_message(f"✅ Sell alert set: **{item_title} ≥ {price:n} T$**", ephemeral=True)
 
 @bot.tree.command(name="set_item_buy_price", description="Set low alert buy price for an item")
 @app_commands.describe(item="Name of the item (e.g., Xanax)", price="Price to trigger alert if dropped below")
 async def set_item_buy_price(interaction: discord.Interaction, item: str, price: int):
+    item_title = item.title()
+    if item_title not in TRACKED_ITEMS:
+        await interaction.response.send_message(f"❌ Unsupported item. Try: {', '.join(TRACKED_ITEMS)}", ephemeral=True)
+        return
+
+    internal_key = TRACKED_ITEMS[item_title]
     thresholds = load_item_thresholds()
-    item_lower = item.lower()
-
-    if item_lower not in thresholds:
-        thresholds[item_lower] = {"buy": price, "sell": None}
-    else:
-        thresholds[item_lower]["buy"] = price
-
+    thresholds[internal_key]["buy"] = price
     save_item_thresholds(thresholds)
-    await interaction.response.send_message(f"📉 Set **buy** alert for **{item}** at **{price:n}** T$", ephemeral=True)
+
+    await interaction.response.send_message(f"✅ Buy alert set: **{item_title} ≤ {price:n} T$**", ephemeral=True)
 
 @bot.tree.command(name="check_item_price", description="Check the current lowest market price of an item")
 @app_commands.describe(item="Name of the item (e.g., xanax)")
@@ -536,6 +538,23 @@ async def item_price_graph(interaction: discord.Interaction, item: str):
 
     await interaction.followup.send(file=file)
 
+@bot.tree.command(name="clean_item_thresholds", description="Remove unused or invalid keys from item thresholds")
+async def clean_item_thresholds(interaction: discord.Interaction):
+    path = "/mnt/item_thresholds.json"
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        await interaction.response.send_message("❌ Could not load thresholds file.", ephemeral=True)
+        return
+
+    valid_keys = set(TRACKED_ITEMS.values())
+    cleaned = {k: v for k, v in data.items() if k in valid_keys}
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cleaned, f, indent=2)
+
+    await interaction.response.send_message("🧹 Thresholds cleaned to match tracked items.", ephemeral=True)
 
 
 
@@ -592,20 +611,19 @@ async def check_item_prices():
     if not api_key:
         return
 
-    try:
-        with open("/mnt/item_thresholds.json", "r", encoding="utf-8") as f:
-            thresholds = json.load(f)
-    except FileNotFoundError:
-        thresholds = {}
-
+    thresholds = load_item_thresholds()
     channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
     if not channel:
         print("⚠️ Channel 'trading-alerts' not found.")
         return
 
-    for name, item_id in ITEM_IDS.items():
+    for display_name, internal_key in TRACKED_ITEMS.items():
+        item_id = ITEM_IDS.get(internal_key)
+        if not item_id:
+            continue
+
         try:
-            url = f"https://api.torn.com/v2/market/{item_id}?selections=itemmarket&key={api_key}"
+            url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
             response = requests.get(url)
             data = response.json()
 
@@ -613,25 +631,22 @@ async def check_item_prices():
             if not listings:
                 continue
 
-            # Get lowest price from listings
-            lowest = min(listings, key=lambda x: x["price"])
-            price = int(lowest["price"])
+            lowest_price = listings[0]["price"]
+            log_item_price(internal_key, lowest_price)
 
-            # Alert logic
-            item_threshold = thresholds.get(name, {})
-            alert_msg = None
+            alert = None
+            item_threshold = thresholds.get(internal_key, {})
 
-            if item_threshold.get("buy") and price <= item_threshold["buy"]:
-                alert_msg = f"💰 **{name.title()} is cheap!** {price:n} T$ (≤ {item_threshold['buy']})"
+            if item_threshold.get("buy") and lowest_price <= item_threshold["buy"]:
+                alert = f"💰 **{display_name} is cheap!** {lowest_price:n} T$ (≤ {item_threshold['buy']})"
+            elif item_threshold.get("sell") and lowest_price >= item_threshold["sell"]:
+                alert = f"🔥 **{display_name} is expensive!** {lowest_price:n} T$ (≥ {item_threshold['sell']})"
 
-            elif item_threshold.get("sell") and price >= item_threshold["sell"]:
-                alert_msg = f"🔥 **{name.title()} is expensive!** {price:n} T$ (≥ {item_threshold['sell']})"
-
-            if alert_msg:
-                await channel.send(alert_msg)
+            if alert:
+                await channel.send(alert)
 
         except Exception as e:
-            print(f"[Error checking itemmarket price for {name}] {e}")
+            print(f"[Item price check error: {display_name}] {e}")
 
 
 @tasks.loop(hours=12)
@@ -747,6 +762,9 @@ async def on_ready():
         bot.tree.add_command(set_item_buy_price, guild=guild)
         bot.tree.add_command(set_item_sell_price, guild=guild)
         bot.tree.add_command(item_price_graph, guild=guild)
+        bot.tree.add_command(list_job_perks, guild=guild)
+        bot.tree.add_command(clean_item_thresholds, guild=guild)
+        
 
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild {guild.id}")
