@@ -486,21 +486,21 @@ async def set_item_buy_price(interaction: discord.Interaction, item: str, price:
         f"📉 Set **buy** alert for **{item.title()}** at **{price:n}** T$", ephemeral=True
     )
 
-@bot.tree.command(name="check_item_price", description="Check the current lowest market price of an item")
-@app_commands.describe(item="Name of the item (e.g., xanax)")
+@bot.tree.command(name="check_item_price", description="Check the current lowest item market price of a tracked item")
+@app_commands.describe(item="Name of the item (e.g., Xanax)")
 async def check_item_price(interaction: discord.Interaction, item: str):
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
         await interaction.response.send_message("❌ Torn API key not set.")
         return
 
-    item_name = item.lower()
-    if item_name not in ITEM_IDS:
-        await interaction.response.send_message(
-            f"❌ Item '{item}' not supported. Try one of: {', '.join(ITEM_IDS.keys())}")
+    normalised = normalise_item_name(item)
+    if not normalised or normalised not in TRACKED_ITEMS.values():
+        supported = ", ".join(TRACKED_ITEMS.keys())
+        await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}")
         return
 
-    item_id = ITEM_IDS[item_name]
+    item_id = ITEM_IDS[normalised]
     try:
         url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
         response = requests.get(url)
@@ -511,43 +511,49 @@ async def check_item_price(interaction: discord.Interaction, item: str):
             await interaction.response.send_message(f"❌ No item market listings found for **{item.title()}**.")
             return
 
-        best = listings[0]
-        price = best["price"]
-        amount = best["amount"]
+        lowest = listings[0]
+        price = int(lowest["price"])
+        quantity = lowest.get("amount", "N/A")
+
+        pretty_name = next(k for k, v in TRACKED_ITEMS.items() if v == normalised)
 
         await interaction.response.send_message(
-            f"🏪 **{item.title()}** item market price: **{price:n}** T$ ({amount} available)"
+            f"🔎 **{pretty_name}** lowest item market price: **{price:n}** T$ for {quantity} units"
         )
 
     except Exception as e:
-        await interaction.response.send_message(f"❌ Error checking price: {e}")
+        await interaction.response.send_message(f"❌ Error fetching item price: {e}")
 
 @bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
 @app_commands.describe(item="Tracked item name (e.g., Xanax, Erotic DVDs)")
 async def item_price_graph(interaction: discord.Interaction, item: str):
     await interaction.response.defer()
 
-    item = item.lower()
-    file_path = ITEM_HISTORY_FILE
+    normalised = normalise_item_name(item)
+    if not normalised or normalised not in TRACKED_ITEMS.values():
+        supported = ", ".join(TRACKED_ITEMS.keys())
+        await interaction.followup.send(f"❌ Unsupported item. Try: {supported}")
+        return
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(ITEM_HISTORY_FILE, "r", encoding="utf-8") as f:
             history = json.load(f)
     except FileNotFoundError:
         await interaction.followup.send("❌ No price history data found.")
         return
 
-    if item not in history or not history[item]:
-        await interaction.followup.send(f"❌ No data found for **{item.title()}**.")
+    if normalised not in history or not history[normalised]:
+        pretty_name = next((k for k, v in TRACKED_ITEMS.items() if v == normalised), item.title())
+        await interaction.followup.send(f"❌ No data found for **{pretty_name}**.")
         return
 
-    entries = history[item]
+    entries = history[normalised]
     times = [datetime.utcfromtimestamp(e["timestamp"]).strftime("%d %b %H:%M") for e in entries]
     prices = [e["price"] for e in entries]
 
     fig, ax = plt.subplots()
-    ax.plot(times, prices, marker="o", linestyle="-", label=item.title())
-    ax.set_title(f"{item.title()} Price Trend (Last 7 Days)")
+    ax.plot(times, prices, marker="o", linestyle="-", label=pretty_name)
+    ax.set_title(f"{pretty_name} Price Trend (Last 7 Days)")
     ax.set_xlabel("Time (UTC)")
     ax.set_ylabel("Price (T$)")
     plt.xticks(rotation=45)
@@ -561,6 +567,7 @@ async def item_price_graph(interaction: discord.Interaction, item: str):
     plt.close()
 
     await interaction.followup.send(file=file)
+
 
 @bot.tree.command(name="clean_item_thresholds", description="Remove unused or invalid keys from item thresholds")
 async def clean_item_thresholds_command(interaction: discord.Interaction):
@@ -635,14 +642,19 @@ async def check_item_prices():
     if not api_key:
         return
 
-    thresholds = load_item_thresholds()
+    try:
+        with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
+            thresholds = json.load(f)
+    except FileNotFoundError:
+        thresholds = {}
+
     channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
     if not channel:
         print("⚠️ Channel 'trading-alerts' not found.")
         return
 
-    for display_name, internal_key in TRACKED_ITEMS.items():
-        item_id = ITEM_IDS.get(internal_key)
+    for pretty_name, clean_key in TRACKED_ITEMS.items():
+        item_id = ITEM_IDS.get(clean_key)
         if not item_id:
             continue
 
@@ -655,22 +667,20 @@ async def check_item_prices():
             if not listings:
                 continue
 
-            lowest_price = listings[0]["price"]
-            log_item_price(internal_key, lowest_price)
-
-            alert = None
-            item_threshold = thresholds.get(internal_key, {})
+            lowest_price = min(listing["price"] for listing in listings)
+            item_threshold = thresholds.get(clean_key, {})
+            alert_msg = None
 
             if item_threshold.get("buy") and lowest_price <= item_threshold["buy"]:
-                alert = f"💰 **{display_name} is cheap!** {lowest_price:n} T$ (≤ {item_threshold['buy']})"
+                alert_msg = f"💰 **{pretty_name} is cheap!** {lowest_price:n} T$ (≤ {item_threshold['buy']})"
             elif item_threshold.get("sell") and lowest_price >= item_threshold["sell"]:
-                alert = f"🔥 **{display_name} is expensive!** {lowest_price:n} T$ (≥ {item_threshold['sell']})"
+                alert_msg = f"🔥 **{pretty_name} is expensive!** {lowest_price:n} T$ (≥ {item_threshold['sell']})"
 
-            if alert:
-                await channel.send(alert)
+            if alert_msg:
+                await channel.send(alert_msg)
 
         except Exception as e:
-            print(f"[Item price check error: {display_name}] {e}")
+            print(f"[Error checking price for {pretty_name}] {e}")
 
 
 @tasks.loop(hours=12)
@@ -717,47 +727,43 @@ async def log_item_price_history():
     if not api_key:
         return
 
-    history_path = ITEM_HISTORY_FILE
     try:
-        with open(history_path, "r", encoding="utf-8") as f:
+        with open(ITEM_HISTORY_FILE, "r", encoding="utf-8") as f:
             history = json.load(f)
     except FileNotFoundError:
         history = {}
 
-    item_ids = {
-        "xanax": "258",
-        "erotic dvds": "264",
-        "feathery hotel coupon": "269",
-        "poison mistletoe": "2067"
-    }
-
     now = int(time.time())
     one_week_ago = now - 7 * 86400
 
-    for name, item_id in item_ids.items():
+    for pretty_name, clean_key in TRACKED_ITEMS.items():
+        item_id = ITEM_IDS.get(clean_key)
+        if not item_id:
+            continue
+
         try:
-            url = f"https://api.torn.com/market/{item_id}?key={api_key}"
+            url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
             response = requests.get(url)
             data = response.json()
 
-            if "bazaar" not in data or not data["bazaar"]:
+            listings = data.get("itemmarket", {}).get("listings", [])
+            if not listings:
                 continue
 
-            lowest = data["bazaar"][0]
-            price = int(lowest["cost"])
+            lowest_price = min(listing["price"] for listing in listings)
 
-            if name not in history:
-                history[name] = []
+            if clean_key not in history:
+                history[clean_key] = []
 
-            history[name].append({"timestamp": now, "price": price})
+            history[clean_key].append({"timestamp": now, "price": lowest_price})
 
-            # Trim to 1 week
-            history[name] = [entry for entry in history[name] if entry["timestamp"] >= one_week_ago]
+            # Trim to last 7 days
+            history[clean_key] = [entry for entry in history[clean_key] if entry["timestamp"] >= one_week_ago]
 
         except Exception as e:
-            print(f"[Error logging history for {name}] {e}")
+            print(f"[Error logging history for {pretty_name}] {e}")
 
-    with open(history_path, "w", encoding="utf-8") as f:
+    with open(ITEM_HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(history, f, indent=2)
 
 
