@@ -14,11 +14,11 @@ from discord.ext import tasks
 import asyncio
 
 # GLOBALS
-THRESHOLDS_FILE = "data/point_thresholds.json"
-POINT_HISTORY_FILE = "data/point_price_history.json"
-ITEM_ALERTS_FILE = "data/item_price_alerts.json"
-ITEM_HISTORY_FILE = "data/item_price_history.json"
-ITEM_THRESHOLD_FILE = "data/item_thresholds.json"
+THRESHOLDS_FILE = "/mnt/data/point_thresholds.json"
+POINT_HISTORY_FILE = "/mnt/data/point_price_history.json"
+ITEM_ALERTS_FILE = "/mnt/data/item_price_alerts.json"
+ITEM_HISTORY_FILE = "mnt/data/item_price_history.json"
+ITEM_THRESHOLD_FILE = "/mnt/data/item_thresholds.json"
 POINTS_SILENT_CHECKS = 0
 
 TRACKED_ITEMS = {
@@ -502,7 +502,7 @@ async def item_price_graph(interaction: discord.Interaction, item: str):
     await interaction.response.defer()
 
     item = item.lower()
-    file_path = "data/item_price_history.json"
+    file_path = ITEM_HISTORY_FILE
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -592,7 +592,7 @@ async def check_item_prices():
     if not api_key:
         return
 
-    thresholds_path = "data/item_thresholds.json"
+    thresholds_path = ITEM_THRESHOLD_FILE
     try:
         with open(thresholds_path, "r", encoding="utf-8") as f:
             thresholds = json.load(f)
@@ -684,7 +684,7 @@ async def log_item_price_history():
     if not api_key:
         return
 
-    history_path = "data/item_price_history.json"
+    history_path = ITEM_HISTORY_FILE
     try:
         with open(history_path, "r", encoding="utf-8") as f:
             history = json.load(f)
