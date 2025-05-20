@@ -460,46 +460,62 @@ async def set_item_buy_price(interaction: discord.Interaction, item: str, price:
     save_item_thresholds(thresholds)
     await interaction.response.send_message(f"📉 Set **buy** alert for **{item}** at **{price:n}** T$", ephemeral=True)
 
-@bot.tree.command(name="check_item_price", description="Check the current lowest market price of an item")
-@app_commands.describe(item="Name of the item (e.g., Xanax)")
+@bot.tree.command(name="check_item_price", description="Check the lowest price of a tracked item across both Bazaar and Item Market")
+@app_commands.describe(item="Name of the item (e.g., xanax, erotic_dvds, poison_mistletoe)")
 async def check_item_price(interaction: discord.Interaction, item: str):
+    await interaction.response.defer()
+
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
-        await interaction.response.send_message("❌ Torn API key not set.")
+        await interaction.followup.send("❌ Torn API key not set.")
         return
 
     item_name = item.lower()
-    
     if item_name not in ITEM_IDS:
-        await interaction.response.send_message(f"❌ Item '{item}' not supported. Try: erotic_dvds, feathery_hotel_coupon, xanax, poison_mistletoe")
-        return
-    item_id = ITEM_IDS[item_name]
-
-    if item_name not in ITEM_IDS:
-        await interaction.response.send_message(f"❌ Item '{item}' not supported. Try: {', '.join(item_ids.keys())}")
+        await interaction.followup.send(f"❌ Item '{item}' not supported. Try one of: {', '.join(ITEM_IDS.keys())}")
         return
 
     item_id = ITEM_IDS[item_name]
+    url = f"https://api.torn.com/market/{item_id}?key={api_key}"
+
     try:
-        url = f"https://api.torn.com/market/{item_id}?key={api_key}"
         response = requests.get(url)
         data = response.json()
 
-        lowest = data["bazaar"][0] if data.get("bazaar") else None
-        if not lowest:
-            await interaction.response.send_message(f"❌ No bazaar listings found for **{item}**.")
-            return
+        lowest_source = None
+        lowest_price = float('inf')
+        lowest_quantity = 0
+        seller_id = None
 
-        price = int(lowest["cost"])
-        quantity = lowest.get("quantity", "N/A")
-        seller = lowest.get("ID", "Unknown")
+        # Check item market
+        if "itemmarket" in data and data["itemmarket"]:
+            im_price = int(data["itemmarket"][0]["cost"])
+            if im_price < lowest_price:
+                lowest_price = im_price
+                lowest_quantity = data["itemmarket"][0].get("quantity", 0)
+                lowest_source = "Item Market"
+                seller_id = None
 
-        await interaction.response.send_message(
-            f"🔎 **{item.title()}** lowest price: **{price:n}** T$ for {quantity} units (Seller ID: {seller})"
-        )
+        # Check bazaar
+        if "bazaar" in data and data["bazaar"]:
+            bazaar_price = int(data["bazaar"][0]["cost"])
+            if bazaar_price < lowest_price:
+                lowest_price = bazaar_price
+                lowest_quantity = data["bazaar"][0].get("quantity", 0)
+                lowest_source = "Bazaar"
+                seller_id = data["bazaar"][0].get("ID", "Unknown")
+
+        if lowest_source:
+            seller_info = f" (Seller ID: {seller_id})" if lowest_source == "Bazaar" else ""
+            await interaction.followup.send(
+                f"🔎 **{item_name.replace('_', ' ').title()}** lowest price: **{lowest_price:n}** T$ "
+                f"from **{lowest_source}** for {lowest_quantity} units{seller_info}."
+            )
+        else:
+            await interaction.followup.send(f"❌ No listings found for **{item_name.title()}**.")
 
     except Exception as e:
-        await interaction.response.send_message(f"❌ Error fetching item price: {e}")
+        await interaction.followup.send(f"❌ Error fetching price: {e}")
 
 @bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
 @app_commands.describe(item="Tracked item name (e.g., Xanax, Erotic DVDs)")
