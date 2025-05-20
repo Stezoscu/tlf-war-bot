@@ -29,10 +29,10 @@ TRACKED_ITEMS = {
 }
 
 ITEM_IDS = {
-    "erotic_dvds": 38,
-    "feathery_hotel_coupon": 206,
-    "xanax": 224,
-    "poison_mistletoe": 787
+    "xanax": "206",
+    "erotic dvds": "366",
+    "feathery hotel coupon": "367",
+    "poison mistletoe": "865"
 }
 
 
@@ -460,62 +460,41 @@ async def set_item_buy_price(interaction: discord.Interaction, item: str, price:
     save_item_thresholds(thresholds)
     await interaction.response.send_message(f"📉 Set **buy** alert for **{item}** at **{price:n}** T$", ephemeral=True)
 
-@bot.tree.command(name="check_item_price", description="Check the lowest price of a tracked item across both Bazaar and Item Market")
-@app_commands.describe(item="Name of the item (e.g., xanax, erotic_dvds, poison_mistletoe)")
+@bot.tree.command(name="check_item_price", description="Check the current lowest market price of an item")
+@app_commands.describe(item="Name of the item (e.g., xanax)")
 async def check_item_price(interaction: discord.Interaction, item: str):
-    await interaction.response.defer()
-
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
-        await interaction.followup.send("❌ Torn API key not set.")
+        await interaction.response.send_message("❌ Torn API key not set.")
         return
 
     item_name = item.lower()
     if item_name not in ITEM_IDS:
-        await interaction.followup.send(f"❌ Item '{item}' not supported. Try one of: {', '.join(ITEM_IDS.keys())}")
+        await interaction.response.send_message(
+            f"❌ Item '{item}' not supported. Try one of: {', '.join(ITEM_IDS.keys())}")
         return
 
     item_id = ITEM_IDS[item_name]
-    url = f"https://api.torn.com/market/{item_id}?key={api_key}"
-
     try:
+        url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
         response = requests.get(url)
         data = response.json()
 
-        lowest_source = None
-        lowest_price = float('inf')
-        lowest_quantity = 0
-        seller_id = None
+        listings = data.get("itemmarket", {}).get("listings", [])
+        if not listings:
+            await interaction.response.send_message(f"❌ No item market listings found for **{item.title()}**.")
+            return
 
-        # Check item market
-        if "itemmarket" in data and data["itemmarket"]:
-            im_price = int(data["itemmarket"][0]["cost"])
-            if im_price < lowest_price:
-                lowest_price = im_price
-                lowest_quantity = data["itemmarket"][0].get("quantity", 0)
-                lowest_source = "Item Market"
-                seller_id = None
+        best = listings[0]
+        price = best["price"]
+        amount = best["amount"]
 
-        # Check bazaar
-        if "bazaar" in data and data["bazaar"]:
-            bazaar_price = int(data["bazaar"][0]["cost"])
-            if bazaar_price < lowest_price:
-                lowest_price = bazaar_price
-                lowest_quantity = data["bazaar"][0].get("quantity", 0)
-                lowest_source = "Bazaar"
-                seller_id = data["bazaar"][0].get("ID", "Unknown")
-
-        if lowest_source:
-            seller_info = f" (Seller ID: {seller_id})" if lowest_source == "Bazaar" else ""
-            await interaction.followup.send(
-                f"🔎 **{item_name.replace('_', ' ').title()}** lowest price: **{lowest_price:n}** T$ "
-                f"from **{lowest_source}** for {lowest_quantity} units{seller_info}."
-            )
-        else:
-            await interaction.followup.send(f"❌ No listings found for **{item_name.title()}**.")
+        await interaction.response.send_message(
+            f"🏪 **{item.title()}** item market price: **{price:n}** T$ ({amount} available)"
+        )
 
     except Exception as e:
-        await interaction.followup.send(f"❌ Error fetching price: {e}")
+        await interaction.response.send_message(f"❌ Error checking price: {e}")
 
 @bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
 @app_commands.describe(item="Tracked item name (e.g., Xanax, Erotic DVDs)")
@@ -780,6 +759,32 @@ async def on_ready():
     except Exception as e:
         print(f"❌ Error syncing commands: {e}")
     
+    async def post_threshold_summary():
+        channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
+        if not channel:
+            print("⚠️ 'trading-alerts' channel not found.")
+            return
+
+        # Load thresholds
+        try:
+            with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
+                item_thresholds = json.load(f)
+        except FileNotFoundError:
+            item_thresholds = {}
+
+        point_thresholds = load_thresholds()
+
+        message = "**Current Alert Thresholds**\n"
+
+        if point_thresholds["buy"] or point_thresholds["sell"]:
+            message += f"\n**Points:** Buy ≤ {point_thresholds.get('buy', 'N/A')} | Sell ≥ {point_thresholds.get('sell', 'N/A')}"
+
+        for item_key, values in item_thresholds.items():
+            pretty_name = next((k for k, v in TRACKED_ITEMS.items() if v == item_key), item_key)
+            message += f"\n**{pretty_name.title()}:** Buy ≤ {values.get('buy', 'N/A')} | Sell ≥ {values.get('sell', 'N/A')}"
+
+        await channel.send(message)
+
     check_point_market.start()
     post_hourly_point_graph.start()
     daily_trim_item_history.start()
@@ -789,5 +794,6 @@ async def on_ready():
 
 
     print(f"✅ Bot is ready. Logged in as {bot.user}")
+    await post_threshold_summary()
 
 bot.run(os.getenv("BOT_TOKEN"))
