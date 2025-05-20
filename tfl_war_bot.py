@@ -138,6 +138,21 @@ def trim_item_price_history(days_to_keep=7):
         json.dump(trimmed_history, f, indent=2)
     print("[Trim] Item price history trimmed to the last", days_to_keep, "days.")
 
+def clean_item_thresholds():
+    try:
+        with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
+            thresholds = json.load(f)
+    except FileNotFoundError:
+        thresholds = {}
+
+    valid_keys = set(TRACKED_ITEMS.values())
+    cleaned = {k: v for k, v in thresholds.items() if k in valid_keys}
+
+    with open(ITEM_THRESHOLD_FILE, "w", encoding="utf-8") as f:
+        json.dump(cleaned, f, indent=4)
+
+    print("[Startup] Cleaned item thresholds.")
+
 # ---- Prediction logic ----
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
     lead_gain_per_hour = current_lead / current_hour
@@ -802,6 +817,8 @@ async def on_ready():
     daily_trim_item_history.start()
     check_item_prices.start()
     log_item_price_history.start()
+    clean_item_thresholds()
+    
 
 
 
