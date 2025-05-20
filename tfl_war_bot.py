@@ -8,18 +8,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from discord.ext import tasks
 import asyncio
 
-# Path to store thresholds
+# GLOBALS
 THRESHOLDS_FILE = "data/point_thresholds.json"
-
 POINT_HISTORY_FILE = "data/point_price_history.json"
-
-# Add this at the top of your script
+ITEM_ALERTS_FILE = "data/item_price_alerts.json"
+ITEM_HISTORY_FILE = "data/item_price_history.json"
+ITEM_THRESHOLD_FILE = "data/item_thresholds.json"
 POINTS_SILENT_CHECKS = 0
+
+TRACKED_ITEMS = {
+    "Erotic DVDs": "erotic_dvds",
+    "Feathery Hotel Coupon": "feathery_hotel_coupon",
+    "Xanax": "xanax",
+    "Poison Mistletoe": "poison_mistletoe"
+}
+
+ITEM_IDS = {
+    "erotic_dvds": 38,
+    "feathery_hotel_coupon": 206,
+    "xanax": 224,
+    "poison_mistletoe": 787
+}
+
 
 
 def log_point_price(price):
@@ -66,6 +81,62 @@ with open("data/job_perks_final.json", "r", encoding="utf-8") as f:
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+def load_item_thresholds():
+    if not os.path.exists(ITEM_THRESHOLD_FILE):
+        data = {key: {"buy": None, "sell": None} for key in TRACKED_ITEMS.values()}
+        save_item_thresholds(data)
+        return data
+
+    with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_item_thresholds(data):
+    with open(ITEM_THRESHOLD_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+def log_item_price(item_key, price):
+    timestamp = int(time.time())
+
+    # Load existing history
+    try:
+        with open(ITEM_HISTORY_FILE, "r", encoding="utf-8") as f:
+            history = json.load(f)
+    except FileNotFoundError:
+        history = {}
+
+    if item_key not in history:
+        history[item_key] = []
+
+    # Add entry
+    history[item_key].append({"timestamp": timestamp, "price": price})
+
+    # Prune older than 7 days
+    cutoff = timestamp - 7 * 86400
+    history[item_key] = [entry for entry in history[item_key] if entry["timestamp"] >= cutoff]
+
+    with open(ITEM_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2)
+
+def trim_item_price_history(days_to_keep=7):
+    try:
+        with open(ITEM_HISTORY_FILE, "r", encoding="utf-8") as f:
+            full_history = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        print("[Trim] No valid history file found.")
+        return
+
+    cutoff = int((datetime.utcnow() - timedelta(days=days_to_keep)).timestamp())
+    trimmed_history = {}
+
+    for item, entries in full_history.items():
+        trimmed = [entry for entry in entries if entry["timestamp"] >= cutoff]
+        if trimmed:
+            trimmed_history[item] = trimmed
+
+    with open(ITEM_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(trimmed_history, f, indent=2)
+    print("[Trim] Item price history trimmed to the last", days_to_keep, "days.")
 
 # ---- Prediction logic ----
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
@@ -359,7 +430,120 @@ async def check_points_price(interaction: discord.Interaction):
 
     except Exception as e:
         await interaction.response.send_message(f"❌ Error fetching price: {e}")
-        
+
+
+@bot.tree.command(name="set_item_sell_price", description="Set high alert sell price for an item")
+@app_commands.describe(item="Name of the item (e.g., Xanax)", price="Price to trigger alert if exceeded")
+async def set_item_sell_price(interaction: discord.Interaction, item: str, price: int):
+    thresholds = load_item_thresholds()
+    item_lower = item.lower()
+
+    if item_lower not in thresholds:
+        thresholds[item_lower] = {"buy": None, "sell": price}
+    else:
+        thresholds[item_lower]["sell"] = price
+
+    save_item_thresholds(thresholds)
+    await interaction.response.send_message(f"📈 Set **sell** alert for **{item}** at **{price:n}** T$", ephemeral=True)
+
+@bot.tree.command(name="set_item_buy_price", description="Set low alert buy price for an item")
+@app_commands.describe(item="Name of the item (e.g., Xanax)", price="Price to trigger alert if dropped below")
+async def set_item_buy_price(interaction: discord.Interaction, item: str, price: int):
+    thresholds = load_item_thresholds()
+    item_lower = item.lower()
+
+    if item_lower not in thresholds:
+        thresholds[item_lower] = {"buy": price, "sell": None}
+    else:
+        thresholds[item_lower]["buy"] = price
+
+    save_item_thresholds(thresholds)
+    await interaction.response.send_message(f"📉 Set **buy** alert for **{item}** at **{price:n}** T$", ephemeral=True)
+
+@bot.tree.command(name="check_item_price", description="Check the current lowest market price of an item")
+@app_commands.describe(item="Name of the item (e.g., Xanax)")
+async def check_item_price(interaction: discord.Interaction, item: str):
+    api_key = os.getenv("TORN_API_KEY")
+    if not api_key:
+        await interaction.response.send_message("❌ Torn API key not set.")
+        return
+
+    item_name = item.lower()
+    item_ids = {
+        "xanax": "258",
+        "erotic dvds": "264",
+        "feathery hotel coupon": "269",
+        "poison mistletoe": "2067"
+    }
+
+    if item_name not in item_ids:
+        await interaction.response.send_message(f"❌ Item '{item}' not supported. Try: {', '.join(item_ids.keys())}")
+        return
+
+    item_id = item_ids[item_name]
+    try:
+        url = f"https://api.torn.com/market/{item_id}?key={api_key}"
+        response = requests.get(url)
+        data = response.json()
+
+        lowest = data["bazaar"][0] if data.get("bazaar") else None
+        if not lowest:
+            await interaction.response.send_message(f"❌ No bazaar listings found for **{item}**.")
+            return
+
+        price = int(lowest["cost"])
+        quantity = lowest.get("quantity", "N/A")
+        seller = lowest.get("ID", "Unknown")
+
+        await interaction.response.send_message(
+            f"🔎 **{item.title()}** lowest price: **{price:n}** T$ for {quantity} units (Seller ID: {seller})"
+        )
+
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Error fetching item price: {e}")
+
+@bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
+@app_commands.describe(item="Tracked item name (e.g., Xanax, Erotic DVDs)")
+async def item_price_graph(interaction: discord.Interaction, item: str):
+    await interaction.response.defer()
+
+    item = item.lower()
+    file_path = "data/item_price_history.json"
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            history = json.load(f)
+    except FileNotFoundError:
+        await interaction.followup.send("❌ No price history data found.")
+        return
+
+    if item not in history or not history[item]:
+        await interaction.followup.send(f"❌ No data found for **{item.title()}**.")
+        return
+
+    entries = history[item]
+    times = [datetime.utcfromtimestamp(e["timestamp"]).strftime("%d %b %H:%M") for e in entries]
+    prices = [e["price"] for e in entries]
+
+    fig, ax = plt.subplots()
+    ax.plot(times, prices, marker="o", linestyle="-", label=item.title())
+    ax.set_title(f"{item.title()} Price Trend (Last 7 Days)")
+    ax.set_xlabel("Time (UTC)")
+    ax.set_ylabel("Price (T$)")
+    plt.xticks(rotation=45)
+    ax.grid(True)
+    plt.tight_layout()
+
+    buf = BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    file = discord.File(buf, filename="item_trend.png")
+    plt.close()
+
+    await interaction.followup.send(file=file)
+
+
+
 
 @tasks.loop(minutes=1)
 async def check_point_market():
@@ -399,14 +583,70 @@ async def check_point_market():
                 POINTS_SILENT_CHECKS = 0
             else:
                 POINTS_SILENT_CHECKS += 1
-                if POINTS_SILENT_CHECKS >= 15:
+                if POINTS_SILENT_CHECKS >= 60:
                     await channel.send(f"🔍 **Points market check**: {price:n} T$ (no alerts triggered)")
                     POINTS_SILENT_CHECKS = 0
 
     except Exception as e:
         print(f"[Error checking point market] {e}")
 
-@tasks.loop(hours=1)
+@tasks.loop(minutes=1)
+async def check_item_prices():
+    await bot.wait_until_ready()
+
+    api_key = os.getenv("TORN_API_KEY")
+    if not api_key:
+        return
+
+    thresholds_path = "data/item_thresholds.json"
+    try:
+        with open(thresholds_path, "r", encoding="utf-8") as f:
+            thresholds = json.load(f)
+    except FileNotFoundError:
+        thresholds = {}
+
+    item_ids = {
+        "xanax": "258",
+        "erotic dvds": "264",
+        "feathery hotel coupon": "269",
+        "poison mistletoe": "2067"
+    }
+
+    channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
+    if not channel:
+        print("⚠️ Channel 'trading-alerts' not found.")
+        return
+
+    for name, item_id in item_ids.items():
+        try:
+            url = f"https://api.torn.com/market/{item_id}?key={api_key}"
+            response = requests.get(url)
+            data = response.json()
+
+            if "bazaar" not in data or not data["bazaar"]:
+                continue
+
+            lowest = data["bazaar"][0]
+            price = int(lowest["cost"])
+
+            # Alert logic
+            item_threshold = thresholds.get(name, {})
+            alert_msg = None
+
+            if item_threshold.get("buy") and price <= item_threshold["buy"]:
+                alert_msg = f"💰 **{name.title()} is cheap!** {price:n} T$ (≤ {item_threshold['buy']})"
+
+            elif item_threshold.get("sell") and price >= item_threshold["sell"]:
+                alert_msg = f"🔥 **{name.title()} is expensive!** {price:n} T$ (≥ {item_threshold['sell']})"
+
+            if alert_msg:
+                await channel.send(alert_msg)
+
+        except Exception as e:
+            print(f"[Error checking price for {name}] {e}")
+
+
+@tasks.loop(hours=12)
 async def post_hourly_point_graph():
     await bot.wait_until_ready()
 
@@ -442,6 +682,63 @@ async def post_hourly_point_graph():
     except Exception as e:
         print(f"[Hourly graph error] {e}")
 
+@tasks.loop(minutes=30)
+async def log_item_price_history():
+    await bot.wait_until_ready()
+
+    api_key = os.getenv("TORN_API_KEY")
+    if not api_key:
+        return
+
+    history_path = "data/item_price_history.json"
+    try:
+        with open(history_path, "r", encoding="utf-8") as f:
+            history = json.load(f)
+    except FileNotFoundError:
+        history = {}
+
+    item_ids = {
+        "xanax": "258",
+        "erotic dvds": "264",
+        "feathery hotel coupon": "269",
+        "poison mistletoe": "2067"
+    }
+
+    now = int(time.time())
+    one_week_ago = now - 7 * 86400
+
+    for name, item_id in item_ids.items():
+        try:
+            url = f"https://api.torn.com/market/{item_id}?key={api_key}"
+            response = requests.get(url)
+            data = response.json()
+
+            if "bazaar" not in data or not data["bazaar"]:
+                continue
+
+            lowest = data["bazaar"][0]
+            price = int(lowest["cost"])
+
+            if name not in history:
+                history[name] = []
+
+            history[name].append({"timestamp": now, "price": price})
+
+            # Trim to 1 week
+            history[name] = [entry for entry in history[name] if entry["timestamp"] >= one_week_ago]
+
+        except Exception as e:
+            print(f"[Error logging history for {name}] {e}")
+
+    with open(history_path, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2)
+
+
+@tasks.loop(hours=24)
+async def daily_trim_item_history():
+    await bot.wait_until_ready()
+    trim_item_price_history()
+
 
 
 @bot.event
@@ -458,6 +755,10 @@ async def on_ready():
         bot.tree.add_command(set_points_buy, guild=guild)
         bot.tree.add_command(set_points_sell, guild=guild)
         bot.tree.add_command(check_points_price, guild=guild)
+        bot.tree.add_command(check_item_price, guild=guild)
+        bot.tree.add_command(set_item_buy_price, guild=guild)
+        bot.tree.add_command(set_item_sell_price, guild=guild)
+        bot.tree.add_command(item_price_graph, guild=guild)
 
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild {guild.id}")
@@ -466,6 +767,11 @@ async def on_ready():
     
     check_point_market.start()
     post_hourly_point_graph.start()
+    daily_trim_item_history.start()
+    check_item_prices.start()
+    log_item_price_history.start()
+
+
 
     print(f"✅ Bot is ready. Logged in as {bot.user}")
 
