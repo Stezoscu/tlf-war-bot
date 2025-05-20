@@ -17,7 +17,7 @@ import asyncio
 THRESHOLDS_FILE = "/mnt/data/point_thresholds.json"
 POINT_HISTORY_FILE = "/mnt/data/point_price_history.json"
 ITEM_ALERTS_FILE = "/mnt/data/item_price_alerts.json"
-ITEM_HISTORY_FILE = "mnt/data/item_price_history.json"
+ITEM_HISTORY_FILE = "/mnt/data/item_price_history.json"
 ITEM_THRESHOLD_FILE = "/mnt/data/item_thresholds.json"
 POINTS_SILENT_CHECKS = 0
 
