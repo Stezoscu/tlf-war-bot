@@ -450,32 +450,41 @@ async def check_points_price(interaction: discord.Interaction):
 @bot.tree.command(name="set_item_sell_price", description="Set high alert sell price for an item")
 @app_commands.describe(item="Name of the item (e.g., Xanax)", price="Price to trigger alert if exceeded")
 async def set_item_sell_price(interaction: discord.Interaction, item: str, price: int):
-    item_title = item.title()
-    if item_title not in TRACKED_ITEMS:
-        await interaction.response.send_message(f"❌ Unsupported item. Try: {', '.join(TRACKED_ITEMS)}", ephemeral=True)
+    matched = next((v for k, v in TRACKED_ITEMS.items() if k.lower() == item.lower()), None)
+    if not matched:
+        await interaction.response.send_message(
+            f"❌ Unsupported item. Try: {', '.join(TRACKED_ITEMS.keys())}", ephemeral=True
+        )
         return
 
-    internal_key = TRACKED_ITEMS[item_title]
     thresholds = load_item_thresholds()
-    thresholds[internal_key]["sell"] = price
+    thresholds[matched] = thresholds.get(matched, {})
+    thresholds[matched]["sell"] = price
     save_item_thresholds(thresholds)
 
-    await interaction.response.send_message(f"✅ Sell alert set: **{item_title} ≥ {price:n} T$**", ephemeral=True)
+    await interaction.response.send_message(
+        f"📈 Set **sell** alert for **{item.title()}** at **{price:n}** T$", ephemeral=True
+    )
+
 
 @bot.tree.command(name="set_item_buy_price", description="Set low alert buy price for an item")
 @app_commands.describe(item="Name of the item (e.g., Xanax)", price="Price to trigger alert if dropped below")
 async def set_item_buy_price(interaction: discord.Interaction, item: str, price: int):
-    item_title = item.title()
-    if item_title not in TRACKED_ITEMS:
-        await interaction.response.send_message(f"❌ Unsupported item. Try: {', '.join(TRACKED_ITEMS)}", ephemeral=True)
+    matched = next((v for k, v in TRACKED_ITEMS.items() if k.lower() == item.lower()), None)
+    if not matched:
+        await interaction.response.send_message(
+            f"❌ Unsupported item. Try: {', '.join(TRACKED_ITEMS.keys())}", ephemeral=True
+        )
         return
 
-    internal_key = TRACKED_ITEMS[item_title]
     thresholds = load_item_thresholds()
-    thresholds[internal_key]["buy"] = price
+    thresholds[matched] = thresholds.get(matched, {})
+    thresholds[matched]["buy"] = price
     save_item_thresholds(thresholds)
 
-    await interaction.response.send_message(f"✅ Buy alert set: **{item_title} ≤ {price:n} T$**", ephemeral=True)
+    await interaction.response.send_message(
+        f"📉 Set **buy** alert for **{item.title()}** at **{price:n}** T$", ephemeral=True
+    )
 
 @bot.tree.command(name="check_item_price", description="Check the current lowest market price of an item")
 @app_commands.describe(item="Name of the item (e.g., xanax)")
