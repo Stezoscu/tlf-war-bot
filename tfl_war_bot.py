@@ -468,13 +468,11 @@ async def check_item_price(interaction: discord.Interaction, item: str):
         await interaction.response.send_message("❌ Torn API key not set.")
         return
 
-    item_name = item.lower()
-    item_ids = {
-        "xanax": "258",
-        "erotic dvds": "264",
-        "feathery hotel coupon": "269",
-        "poison mistletoe": "2067"
-    }
+        item_name = item.lower()
+    if item_name not in ITEM_IDS:
+        await interaction.response.send_message(f"❌ Item '{item}' not supported. Try: erotic_dvds, feathery_hotel_coupon, xanax, poison_mistletoe")
+        return
+    item_id = ITEM_IDS[item_name]
 
     if item_name not in item_ids:
         await interaction.response.send_message(f"❌ Item '{item}' not supported. Try: {', '.join(item_ids.keys())}")
