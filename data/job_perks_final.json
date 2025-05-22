@@ -747,6 +747,28 @@
       "effect": "View financial details of a company"
     }
   ],
+  "Sweet Shop": [
+    {
+      "name": "Sweet Tooth",
+      "effect": "50 happiness - 1 point"
+    },
+    {
+      "name": "Sugar Rush",
+      "effect": "Bag of Candy - 2 points"
+    },
+    {
+      "name": "Gluttony",
+      "effect": "1,000 happiness - 10 points"
+    },
+    {
+      "name": "Energy Rush",
+      "effect": "Can of Energy Drink - 15 points"
+    },
+    {
+      "name": "Voracious",
+      "effect": "4,5000 happiness - 30 points"
+    }
+  ],
   "Television Network": [
     {
       "name": "Propaganda",
