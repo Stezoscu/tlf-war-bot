@@ -179,6 +179,13 @@ def predict_war_end(current_hour, current_lead, your_score, starting_score_goal)
         "final_lead": int(final_lead)
     }
 
+def normalise_item_name(name: str) -> str:
+    """
+    Converts item names to a consistent, lookup-friendly format.
+    E.g., 'Erotic DVDs' or 'erotic dvds' → 'erotic_dvds'
+    """
+    return name.strip().lower().replace(" ", "_")
+
 # ---- Torn API fetcher ----
 def fetch_v2_war_data():
     api_key = os.getenv("TORN_API_KEY")
