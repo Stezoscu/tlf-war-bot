@@ -3,9 +3,10 @@ import discord
 from utils import thresholds
 from utils import charts as prices
 from utils.charts import item_price_graph as item_price_graph_handler
+from utils.items import normalise_item_name
 
-@bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
-@app_commands.describe(item="Name of the item to display the price trend")
+
+
 async def item_price_graph(interaction: discord.Interaction, item: str):
     await item_price_graph_handler(interaction, item)
 

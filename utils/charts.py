@@ -9,6 +9,8 @@ import discord
 from constants import ITEM_HISTORY_FILE
 from constants import POINT_HISTORY_FILE
 from constants import TRACKED_ITEMS
+from utils.items import normalise_item_name
+
 
 
 async def item_price_graph(interaction: discord.Interaction, item: str):
