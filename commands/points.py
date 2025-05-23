@@ -1,7 +1,7 @@
 # commands/points.py
 import discord
 from utils import thresholds
-from utils import prices
+from utils import charts as prices
   # Import utility modules for thresholds and price checks
 
 async def set_points_buy(interaction: discord.Interaction, threshold: int):
