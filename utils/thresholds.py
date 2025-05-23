@@ -4,7 +4,7 @@ import os
 import discord
 import json
 from constants import ITEM_THRESHOLD_FILE, TRACKED_ITEMS, THRESHOLDS_FILE
-from utils.thresholds import load_thresholds
+
 
 async def post_threshold_summary(bot):
     channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
