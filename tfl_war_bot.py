@@ -7,8 +7,9 @@ from commands.warpredict import warpredict, autopredict
 from commands.perks import check_gear_perk, list_gear_perks, check_job_perk, list_jobs, list_job_perks
 from commands.points import set_points_buy, set_points_sell, check_points_price
 from commands.items import set_item_buy_price, set_item_sell_price, check_item_price, item_price_graph
-from utils.check_loops import check_point_market, check_item_prices, log_item_price_history, post_hourly_point_graph, daily_trim_item_history
+from utils.check_loops import check_point_market, check_item_prices, log_item_price_history, daily_trim_item_history
 from utils.thresholds import clean_item_thresholds, post_threshold_summary
+from utils.charts import post_hourly_point_graph 
 
 intents = discord.Intents.default()
 intents.message_content = True
