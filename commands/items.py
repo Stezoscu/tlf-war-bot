@@ -1,7 +1,13 @@
 # commands/items.py
 import discord
 from utils import thresholds
-from utils.predictor import prices  # Utility modules for threshold storage and price data
+from utils.charts import item_price_graph as item_price_graph_handler
+
+@bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
+@app_commands.describe(item="Name of the item to display the price trend")
+async def item_price_graph(interaction: discord.Interaction, item: str):
+    await item_price_graph_handler(interaction, item)
+
 
 async def set_item_buy_price(interaction: discord.Interaction, item: str, price: int):
     """Set the buy price threshold for a given item."""
