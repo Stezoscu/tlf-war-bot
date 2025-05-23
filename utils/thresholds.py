@@ -76,3 +76,19 @@ def load_thresholds():
 def save_thresholds(thresholds):
     with open(THRESHOLDS_FILE, "w", encoding="utf-8") as f:
         json.dump(thresholds, f, indent=4)
+
+def set_item_buy_threshold(item_key: str, threshold: int):
+    """Set the buy threshold for an item."""
+    thresholds = load_item_thresholds()
+    if item_key not in thresholds:
+        thresholds[item_key] = {}
+    thresholds[item_key]["buy"] = threshold
+    save_item_thresholds(thresholds)
+
+def set_item_sell_threshold(item_key: str, threshold: int):
+    """Set the sell threshold for an item."""
+    thresholds = load_item_thresholds()
+    if item_key not in thresholds:
+        thresholds[item_key] = {}
+    thresholds[item_key]["sell"] = threshold
+    save_item_thresholds(thresholds)
