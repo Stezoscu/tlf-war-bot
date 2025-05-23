@@ -1,6 +1,7 @@
 # commands/perks.py
 import discord
-from utils.perks import GEAR_PERKS, JOB_PERKS  # Assume constants defines dicts for gear and job perks
+from utils.perks import GEAR_PERKS
+from utils.perks import JOB_PERKS  # Assume constants defines dicts for gear and job perks
 
 async def check_gear_perk(interaction: discord.Interaction, gear_name: str):
     """Get details about the perk/bonus of a specific gear item."""

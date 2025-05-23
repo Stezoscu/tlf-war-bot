@@ -6,7 +6,9 @@ from io import BytesIO
 from discord.ext import tasks
 import discord
 
-from constants import ITEM_HISTORY_FILE, POINT_HISTORY_FILE, TRACKED_ITEMS
+from constants import ITEM_HISTORY_FILE
+from constants import POINT_HISTORY_FILE
+from constants import TRACKED_ITEMS
 
 @bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
 @app_commands.describe(item="Tracked item name (e.g., Xanax, Erotic DVDs)")

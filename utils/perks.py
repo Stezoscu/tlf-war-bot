@@ -1,6 +1,26 @@
 import json
 import os
 
+import shutil
+
+def ensure_perks_data():
+    gear_path = os.path.join(DATA_DIR, "gear_perks.json")
+    job_path = os.path.join(DATA_DIR, "job_perks_final.json")
+
+    if not os.path.exists(gear_path):
+        try:
+            shutil.copy("seed_data/gear_perks.json", gear_path)
+            print("✅ Copied gear_perks.json to /mnt/data")
+        except Exception as e:
+            print(f"❌ Failed to copy gear_perks.json: {e}")
+
+    if not os.path.exists(job_path):
+        try:
+            shutil.copy("seed_data/job_perks_final.json", job_path)
+            print("✅ Copied job_perks_final.json to /mnt/data")
+        except Exception as e:
+            print(f"❌ Failed to copy job_perks_final.json: {e}")
+
 # Use persistent volume path
 DATA_DIR = "/mnt/data"
 
@@ -29,5 +49,6 @@ def load_job_perks():
         return {}
 
 # Load these at import time so they're available as constants
+ensure_perks_data()
 GEAR_PERKS = load_gear_perks()
 JOB_PERKS = load_job_perks()

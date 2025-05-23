@@ -1,6 +1,8 @@
 import discord
 from discord import app_commands
-from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data
+from utils.predictor import predict_war_end
+from utils.predictor import fetch_v2_war_data
+from utils.predictor import log_war_data
 import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO

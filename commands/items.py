@@ -1,6 +1,7 @@
 # commands/items.py
 import discord
-from utils import thresholds, prices  # Utility modules for threshold storage and price data
+from utils import thresholds
+from utils.predictor import prices  # Utility modules for threshold storage and price data
 
 async def set_item_buy_price(interaction: discord.Interaction, item: str, price: int):
     """Set the buy price threshold for a given item."""
