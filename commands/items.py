@@ -1,6 +1,7 @@
 # commands/items.py
 import discord
 from utils import thresholds
+from utils import charts as prices
 from utils.charts import item_price_graph as item_price_graph_handler
 
 @bot.tree.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
