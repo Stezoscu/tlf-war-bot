@@ -13,7 +13,7 @@ from utils.items import normalise_item_name
 
 
 
-async def item_price_graph(interaction: discord.Interaction, item: str):
+async def generate_item_price_graph(interaction: discord.Interaction, item: str):
     await interaction.response.defer()
 
     normalised = normalise_item_name(item)
