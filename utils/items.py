@@ -1,6 +1,7 @@
 import os
 import requests
 
+
 def fetch_item_market_price(item_id: str):
     """
     Fetches the lowest item market listing for the given item ID from Torn API v2.
@@ -16,7 +17,8 @@ def fetch_item_market_price(item_id: str):
 
     listings = data.get("itemmarket", {}).get("listings", [])
     if listings:
-        lowest = listings[0]
+        # Find the listing with the lowest price
+        lowest = min(listings, key=lambda l: l["price"])
         return lowest["price"], lowest["amount"]
 
     return None, None

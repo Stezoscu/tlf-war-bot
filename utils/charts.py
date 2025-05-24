@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from discord.ext import tasks
 import discord
+import requests
 
 from constants import ITEM_HISTORY_FILE
 from constants import POINT_HISTORY_FILE
@@ -90,3 +91,18 @@ async def post_hourly_point_graph(bot):
 
     except Exception as e:
         print(f"[Hourly graph error] {e}")
+
+def get_points_price():
+    api_key = os.getenv("TORN_API_KEY")
+    if not api_key:
+        raise ValueError("Missing TORN_API_KEY")
+
+    url = f"https://api.torn.com/market/?selections=pointsmarket&key={api_key}"
+    response = requests.get(url)
+    data = response.json()
+
+    if "pointsmarket" not in data or not data["pointsmarket"]:
+        raise ValueError("No pointsmarket data found")
+
+    lowest_offer = min(data["pointsmarket"].values(), key=lambda x: x["cost"])
+    return lowest_offer["cost"]
