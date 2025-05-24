@@ -3,6 +3,7 @@
 import discord
 from discord import app_commands
 
+
 from utils.perks import GEAR_PERKS, JOB_PERKS
 
 @app_commands.command(name="check_gear_perk", description="Get the perk for a specific gear item.")

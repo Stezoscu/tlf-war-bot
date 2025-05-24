@@ -1,5 +1,6 @@
 import discord
 from discord import app_commands
+from discord import Interaction
 from constants import TRACKED_ITEMS, ITEM_IDS
 from utils.thresholds import set_item_buy_threshold, set_item_sell_threshold
 from utils.items import fetch_item_market_price
