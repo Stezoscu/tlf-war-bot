@@ -33,26 +33,35 @@ async def set_item_sell_price(interaction: discord.Interaction, item: str, price
     await interaction.response.send_message(f"✅ Sell threshold set for **{item.title()}**: ≥ {price:,} T$", ephemeral=True)
 
 # 📌 Slash command: /check_item_price
-@app_commands.command(name="check_item_price", description="Check the current lowest market price of an item")
-@app_commands.describe(item="Tracked item name (e.g., Xanax)")
-async def check_item_price(interaction: discord.Interaction, item: str):
-    normalised = normalise_item_name(item)
-    if not normalised or normalised not in ITEM_IDS:
-        supported = ", ".join(TRACKED_ITEMS.keys())
-        await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}")
-        return
+@app_commands.command(name="check_item_price", description="Check market price for a tracked item")
+@app_commands.describe(item="The name of the item to check (e.g. Xanax)")
+async def check_item_price(interaction: Interaction, item: str):
+    try:
+        print(f"🔍 Received /check_item_price for item: {item}")
+        normalised = normalise_item_name(item)
 
-    item_id = ITEM_IDS[normalised]
-    result = fetch_item_market_price(item_id)
+        if not normalised or normalised not in TRACKED_ITEMS.values():
+            supported = ", ".join(TRACKED_ITEMS.keys())
+            await interaction.response.send_message(
+                f"❌ Unsupported item. Try: {supported}", ephemeral=True
+            )
+            return
 
-    if not result:
-        await interaction.response.send_message(f"❌ No item market listings found for '{item.title()}'.")
-        return
+        price_info = fetch_item_market_price(normalised)
+        if not price_info:
+            await interaction.response.send_message(
+                f"⚠️ No item market listings found for **{item.title()}**.", ephemeral=True
+            )
+            return
 
-    price, quantity = result
-    await interaction.response.send_message(
-        f"🛒 **{item.title()}** lowest price: **{price:,}** T$ for **{quantity}** units."
-    )
+        await interaction.response.send_message(
+            f"📦 **{item.title()}** is currently selling for **{price_info['price']:,} T$** "
+            f"(Quantity: {price_info['quantity']})"
+        )
+
+    except Exception as e:
+        print(f"❌ Error in check_item_price: {e}")
+        await interaction.response.send_message("❌ An unexpected error occurred.", ephemeral=True)
 
 # 📌 Slash command: /item_price_graph
 @app_commands.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")

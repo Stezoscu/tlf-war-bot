@@ -56,7 +56,7 @@ async def generate_item_price_graph(interaction: discord.Interaction, item: str)
     await interaction.followup.send(file=file)
 
 @tasks.loop(hours=12)
-async def post_hourly_point_graph():
+async def post_hourly_point_graph(bot):
     await bot.wait_until_ready()
 
     try:

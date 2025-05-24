@@ -1,13 +1,21 @@
+# commands/warpredict.py
+
 import discord
 from discord import app_commands
-from utils.predictor import predict_war_end
-from utils.predictor import fetch_v2_war_data
-from utils.predictor import log_war_data
 import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
 import time
 
+from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data
+
+@app_commands.command(name="warpredict", description="Predict war outcome from manual inputs.")
+@app_commands.describe(
+    current_hour="Current hour of the war (e.g., 36.5)",
+    current_lead="Current lead in the war (positive or negative number)",
+    your_score="Your current total score",
+    starting_goal="The original target score (usually 3000)"
+)
 async def warpredict(interaction: discord.Interaction, current_hour: float, current_lead: int, your_score: int, starting_goal: int):
     result = predict_war_end(current_hour, current_lead, your_score, starting_goal)
 
@@ -31,6 +39,10 @@ async def warpredict(interaction: discord.Interaction, current_hour: float, curr
         f"📊 Final Lead: **{result['final_lead']}**"
     )
 
+@app_commands.command(name="autopredict", description="Auto predict war outcome using live Torn API data.")
+@app_commands.describe(
+    starting_goal="The original target score (defaults to 3000)"
+)
 async def autopredict(interaction: discord.Interaction, starting_goal: int = 3000):
     try:
         data = fetch_v2_war_data()

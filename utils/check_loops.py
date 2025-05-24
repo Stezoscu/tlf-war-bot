@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 from discord.ext import tasks
 import discord
+
 from constants import (
     TRACKED_ITEMS,
     ITEM_IDS,
@@ -13,17 +14,20 @@ from constants import (
     POINT_HISTORY_FILE,
 )
 from utils.thresholds import load_thresholds, load_item_thresholds
-from utils.history import log_point_price, log_item_price, trim_item_price_history
+from utils.history import log_point_price, trim_item_price_history
 
+POINTS_SILENT_CHECKS = 0
 
+def start_loops(bot):
+    check_point_market_loop.start(bot)
+    check_item_prices_loop.start(bot)
+    log_item_price_history_loop.start(bot)
+    daily_trim_item_history_loop.start(bot)
 
 @tasks.loop(minutes=1)
-async def check_point_market():
-    await bot.wait_until_ready()
-
+async def check_point_market_loop(bot):
     global POINTS_SILENT_CHECKS
-    alert_triggered = False
-
+    await bot.wait_until_ready()
     thresholds = load_thresholds()
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
@@ -42,16 +46,13 @@ async def check_point_market():
         price = lowest_offer["cost"]
         log_point_price(price)
 
-
         channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
         if channel:
             if thresholds["buy"] and price <= thresholds["buy"]:
                 await channel.send(f"💰 **Points are cheap!** {price:n} T$ (≤ {thresholds['buy']})")
-                alert_triggered = True
                 POINTS_SILENT_CHECKS = 0
             elif thresholds["sell"] and price >= thresholds["sell"]:
                 await channel.send(f"🔥 **Points are expensive!** {price:n} T$ (≥ {thresholds['sell']})")
-                alert_triggered = True
                 POINTS_SILENT_CHECKS = 0
             else:
                 POINTS_SILENT_CHECKS += 1
@@ -63,9 +64,8 @@ async def check_point_market():
         print(f"[Error checking point market] {e}")
 
 @tasks.loop(minutes=1)
-async def check_item_prices():
+async def check_item_prices_loop(bot):
     await bot.wait_until_ready()
-
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
         return
@@ -110,13 +110,9 @@ async def check_item_prices():
         except Exception as e:
             print(f"[Error checking price for {pretty_name}] {e}")
 
-
-
-
 @tasks.loop(minutes=30)
-async def log_item_price_history():
+async def log_item_price_history_loop(bot):
     await bot.wait_until_ready()
-
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
         return
@@ -150,8 +146,6 @@ async def log_item_price_history():
                 history[clean_key] = []
 
             history[clean_key].append({"timestamp": now, "price": lowest_price})
-
-            # Trim to last 7 days
             history[clean_key] = [entry for entry in history[clean_key] if entry["timestamp"] >= one_week_ago]
 
         except Exception as e:
@@ -160,9 +154,7 @@ async def log_item_price_history():
     with open(ITEM_HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(history, f, indent=2)
 
-
 @tasks.loop(hours=24)
-async def daily_trim_item_history():
+async def daily_trim_item_history_loop(bot):
     await bot.wait_until_ready()
     trim_item_price_history()
-
