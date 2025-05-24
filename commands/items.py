@@ -36,7 +36,7 @@ async def set_item_sell_price(interaction: discord.Interaction, item: str, price
     await interaction.response.send_message(f"✅ Sell threshold set for **{item.title()}**: ≥ {price:,} T$", ephemeral=True)
 
 # 📌 Slash command: /check_item_price
-@bot.tree.command(name="check_item_price", description="Check the current lowest item market price of a tracked item")
+@app.tree.command(name="check_item_price", description="Check the current lowest item market price of a tracked item")
 @app_commands.describe(item="Name of the item (e.g., Xanax)")
 async def check_item_price(interaction: Interaction, item: str):
     try:
