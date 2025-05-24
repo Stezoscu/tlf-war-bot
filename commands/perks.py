@@ -44,7 +44,12 @@ async def list_jobs(interaction: discord.Interaction):
 
 @app_commands.command(name="list_job_perks", description="List all jobs with their respective perks.")
 async def list_job_perks(interaction: discord.Interaction):
-    message = "**Job Perks:**\n"
+    """List all jobs with their respective perks."""
+    output = StringIO()
+    output.write("Job Perks:\n\n")
     for job, perk in JOB_PERKS.items():
-        message += f"- **{job}**: {perk}\n"
-    await interaction.response.send_message(message)
+        output.write(f"- {job}: {perk}\n")
+    output.seek(0)
+
+    file = discord.File(fp=output, filename="job_perks.txt")
+    await interaction.response.send_message("📄 Full list of job perks:", file=file)
