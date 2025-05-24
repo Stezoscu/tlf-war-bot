@@ -2,6 +2,7 @@
 
 import discord
 from discord import app_commands
+from io import StringIO
 
 
 from utils.perks import GEAR_PERKS, JOB_PERKS
@@ -17,10 +18,15 @@ async def check_gear_perk(interaction: discord.Interaction, gear_name: str):
 
 @app_commands.command(name="list_gear_perks", description="List all gear items and their perks.")
 async def list_gear_perks(interaction: discord.Interaction):
-    message = "**Gear Perks:**\n"
+    """List all gear items and their perks."""
+    output = StringIO()
+    output.write("Gear Perks:\n\n")
     for gear, perk in GEAR_PERKS.items():
-        message += f"- **{gear}**: {perk}\n"
-    await interaction.response.send_message(message)
+        output.write(f"- {gear}: {perk}\n")
+    output.seek(0)
+
+    file = discord.File(fp=output, filename="gear_perks.txt")
+    await interaction.response.send_message("📄 Full list of gear perks:", file=file)
 
 @app_commands.command(name="check_job_perk", description="Show the perk(s) provided by a specific job.")
 @app_commands.describe(job_name="The name of the job")

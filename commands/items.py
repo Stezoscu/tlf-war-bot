@@ -48,16 +48,16 @@ async def check_item_price(interaction: Interaction, item: str):
             )
             return
 
-        price_info = fetch_item_market_price(normalised)
-        if not price_info:
+        price, quantity = fetch_item_market_price(normalised)
+        if price is None:
             await interaction.response.send_message(
                 f"⚠️ No item market listings found for **{item.title()}**.", ephemeral=True
             )
             return
 
         await interaction.response.send_message(
-            f"📦 **{item.title()}** is currently selling for **{price_info['price']:,} T$** "
-            f"(Quantity: {price_info['quantity']})"
+            f"📦 **{item.title()}** is currently selling for **{price:,} T$** "
+            f"(Quantity: {quantity})"
         )
 
     except Exception as e:
