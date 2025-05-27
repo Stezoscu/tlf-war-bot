@@ -6,7 +6,7 @@ import json
 from constants import ITEM_THRESHOLD_FILE, THRESHOLDS_FILE
 from utils.tracked_items import load_tracked_items
 
-TRACKED_ITEMS = load_tracked_items()
+tracked_items = load_tracked_items()
 
 async def post_threshold_summary(bot):
     channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
@@ -29,7 +29,7 @@ async def post_threshold_summary(bot):
         message += f"\n**Points:** Buy ≤ {point_thresholds.get('buy', 'N/A')} | Sell ≥ {point_thresholds.get('sell', 'N/A')}"
 
     for item_key, values in item_thresholds.items():
-        pretty_name = next((k for k, v in TRACKED_ITEMS.items() if v == item_key), item_key)
+        pretty_name = next((k for k, v in tracked_items.items() if v == item_key), item_key)
         message += f"\n**{pretty_name}:** Buy ≤ {values.get('buy', 'N/A')} | Sell ≥ {values.get('sell', 'N/A')}"
 
     await channel.send(message)
@@ -41,7 +41,7 @@ def clean_item_thresholds():
     except FileNotFoundError:
         thresholds = {}
 
-    valid_keys = set(TRACKED_ITEMS.values())
+    valid_keys = set(tracked_items.values())
     cleaned = {k: v for k, v in thresholds.items() if k in valid_keys}
 
     if cleaned != thresholds:
@@ -64,7 +64,7 @@ def save_item_thresholds(data):
         json.dump(data, f, indent=4)
 
 def normalise_item_name(name: str) -> str:
-    for display_name, internal_key in TRACKED_ITEMS.items():
+    for display_name, internal_key in tracked_items.items():
         if name.lower().strip() == display_name.lower() or name.lower().strip() == internal_key:
             return internal_key
     return None

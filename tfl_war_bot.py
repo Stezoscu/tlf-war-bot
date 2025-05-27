@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-from constants import GUILD_ID
+from constants import GUILD_ID, ITEM_THRESHOLD_FILE
 
 # Import all slash commands
 from commands.warpredict import warpredict, autopredict
@@ -57,6 +57,8 @@ async def on_ready():
 
         # Start background loops
         start_loops(bot)
+
+        print(ITEM_THRESHOLD_FILE)
 
         print(f"✅ Bot is ready. Logged in as {bot.user}")
     except Exception as e:
