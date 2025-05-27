@@ -11,15 +11,19 @@ def fetch_item_market_price(item_id: str):
     if not api_key:
         raise RuntimeError("TORN_API_KEY not set in environment variables")
 
-    url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
-    response = requests.get(url)
-    data = response.json()
+    try:
+        url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
+        response = requests.get(url)
+        data = response.json()
 
-    listings = data.get("itemmarket", {}).get("listings", [])
-    if listings:
-        # Find the listing with the lowest price
-        lowest = min(listings, key=lambda l: l["price"])
-        return lowest["price"], lowest["amount"]
+        listings = data.get("itemmarket", {}).get("listings", [])
+        if listings:
+            # Find the listing with the lowest price
+            lowest = min(listings, key=lambda l: l["price"])
+            return lowest["price"], lowest.get("amount", 1)
+
+    except Exception as e:
+        print(f"❌ Error fetching item market price: {e}")
 
     return None, None
 

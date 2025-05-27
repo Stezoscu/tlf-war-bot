@@ -8,6 +8,7 @@ from utils.thresholds import set_item_buy_threshold, set_item_sell_threshold
 from utils.items import fetch_item_market_price
 from utils.items import normalise_item_name
 from utils.charts import generate_item_price_graph
+from utils.tracked_items import load_tracked_items
 
 # 📌 Slash command: /set_item_buy_price
 @app_commands.command(name="set_item_buy_price", description="Set buy threshold for an item")
@@ -41,30 +42,22 @@ async def set_item_sell_price(interaction: discord.Interaction, item: str, price
 async def check_item_price(interaction: Interaction, item: str):
     try:
         print(f"🔍 Received /check_item_price for item: {item}")
-        api_key = os.getenv("TORN_API_KEY")
-        if not api_key:
-            await interaction.response.send_message("❌ Torn API key not set.")
-            return
 
         normalised = normalise_item_name(item)
         if not normalised or normalised not in TRACKED_ITEMS.values():
             supported = ", ".join(TRACKED_ITEMS.keys())
-            await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}")
+            await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
             return
 
-        item_id = ITEM_IDS[normalised]
-        url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
-        response = requests.get(url)
-        data = response.json()
-
-        listings = data.get("itemmarket", {}).get("listings", [])
-        if not listings:
-            await interaction.response.send_message(f"❌ No item market listings found for **{item.title()}**.")
+        item_id = ITEM_IDS.get(normalised)
+        if not item_id:
+            await interaction.response.send_message("❌ Item ID not found for the given item.", ephemeral=True)
             return
 
-        lowest = listings[0]
-        price = int(lowest["price"])
-        quantity = lowest.get("amount", "N/A")
+        price, quantity = fetch_item_market_price(item_id)
+        if price is None:
+            await interaction.response.send_message(f"⚠️ No item market listings found for **{item.title()}**.", ephemeral=True)
+            return
 
         pretty_name = next(k for k, v in TRACKED_ITEMS.items() if v == normalised)
 
@@ -73,8 +66,8 @@ async def check_item_price(interaction: Interaction, item: str):
         )
 
     except Exception as e:
-        print(f"❌ Error fetching item price: {e}")
-        await interaction.response.send_message("❌ An unexpected error occurred.")
+        print(f"❌ Error in check_item_price: {e}")
+        await interaction.response.send_message("❌ An unexpected error occurred.", ephemeral=True)
 
 # 📌 Slash command: /item_price_graph
 @app_commands.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
