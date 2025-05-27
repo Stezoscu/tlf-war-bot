@@ -4,7 +4,6 @@ import requests
 from discord import app_commands
 from discord import Interaction
 from discord import File
-from constants import TRACKED_ITEMS, ITEM_IDS
 from utils.thresholds import set_item_buy_threshold, set_item_sell_threshold
 from utils.items import fetch_item_market_price
 from utils.items import normalise_item_name
@@ -20,8 +19,9 @@ from utils.tracked_items import add_tracked_item, remove_tracked_item, load_trac
 @app_commands.describe(item="Tracked item name (e.g., Xanax)", price="Buy threshold price")
 async def set_item_buy_price(interaction: discord.Interaction, item: str, price: int):
     normalised = normalise_item_name(item)
-    if not normalised or normalised not in TRACKED_ITEMS.values():
-        supported = ", ".join(TRACKED_ITEMS.keys())
+    tracked_items = load_tracked_items()
+    if not normalised or normalised not in tracked_items.values():
+        supported = ", ".join(tracked_items.keys())
         await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
         return
 
@@ -33,6 +33,7 @@ async def set_item_buy_price(interaction: discord.Interaction, item: str, price:
 @app_commands.describe(item="Tracked item name (e.g., Xanax)", price="Sell threshold price")
 async def set_item_sell_price(interaction: discord.Interaction, item: str, price: int):
     normalised = normalise_item_name(item)
+    TRACKED_ITEMS = tracked_items = load_tracked_items()
     if not normalised or normalised not in TRACKED_ITEMS.values():
         supported = ", ".join(TRACKED_ITEMS.keys())
         await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
