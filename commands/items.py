@@ -13,6 +13,7 @@ from utils.tracked_items import load_tracked_items
 import matplotlib.pyplot as plt
 from io import BytesIO
 from utils.history import load_item_price_history
+from utils.items import add_tracked_item, remove_tracked_item, list_tracked_items
 
 # 📌 Slash command: /set_item_buy_price
 @app_commands.command(name="set_item_buy_price", description="Set buy threshold for an item")
@@ -135,3 +136,65 @@ async def item_price_graph(interaction: Interaction, item: str):
     except Exception as e:
         print(f"❌ Error in /item_price_graph: {e}")
         await interaction.response.send_message("❌ An error occurred while generating the graph.", ephemeral=True)
+
+        @app_commands.command(name="add_tracked_item", description="Add a new item to the tracked item list (max 20)")
+@app_commands.describe(name="Item name (e.g., Xanax)", item_id="Torn Item ID (e.g., 206)")
+async def add_tracked_item_command(interaction: Interaction, name: str, item_id: str):
+    try:
+        current = load_tracked_items()
+        if len(current) >= 20:
+            await interaction.response.send_message(
+                "❌ Cannot add item — max of 20 tracked items reached.", ephemeral=True
+            )
+            return
+
+        success = add_tracked_item(name, item_id)
+        if success:
+            await interaction.response.send_message(
+                f"✅ **{name.title()}** added to tracked items (ID: {item_id})", ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                f"⚠️ Item **{name.title()}** already exists in the tracked list.", ephemeral=True
+            )
+    except Exception as e:
+        print(f"❌ Error in add_tracked_item: {e}")
+        await interaction.response.send_message("❌ Failed to add item.", ephemeral=True)
+
+
+@app_commands.command(name="remove_tracked_item", description="Remove an item from the tracked list")
+@app_commands.describe(name="Item name (e.g., Xanax)")
+async def remove_tracked_item_command(interaction: Interaction, name: str):
+    try:
+        success = remove_tracked_item(name)
+        if success:
+            await interaction.response.send_message(f"✅ **{name.title()}** removed from tracked items.", ephemeral=True)
+        else:
+            await interaction.response.send_message(f"❌ Item **{name.title()}** not found in the tracked list.", ephemeral=True)
+    except Exception as e:
+        print(f"❌ Error in remove_tracked_item: {e}")
+        await interaction.response.send_message("❌ Failed to remove item.", ephemeral=True)
+
+@app_commands.command(name="list_tracked_items", description="List all currently tracked items and their Torn IDs")
+async def list_tracked_items(interaction: Interaction):
+    try:
+        tracked = load_tracked_items()
+        if not tracked:
+            await interaction.response.send_message("ℹ️ No items are currently being tracked.", ephemeral=True)
+            return
+
+        response = "**📦 Currently Tracked Items:**\n"
+        for name, item_id in tracked.items():
+            response += f"- **{name.title()}** (ID: `{item_id}`)\n"
+
+                # Handle Discord's 2000 character limit gracefully
+        if len(response) > 2000:
+            chunks = [response[i:i+1990] for i in range(0, len(response), 1990)]
+            for chunk in chunks:
+                await interaction.followup.send(chunk, ephemeral=True)
+        else:
+            await interaction.response.send_message(response, ephemeral=True)
+
+    except Exception as e:
+        print(f"❌ Error in list_tracked_items: {e}")
+        await interaction.response.send_message("❌ Failed to list tracked items.", ephemeral=True)
