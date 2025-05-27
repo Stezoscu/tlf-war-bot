@@ -84,10 +84,7 @@ async def check_item_price(interaction: Interaction, item: str):
         print(f"❌ Error fetching item price: {e}")
         await interaction.response.send_message("❌ An unexpected error occurred.", ephemeral=True)
 
-    except Exception as e:
-        print(f"❌ Error in check_item_price: {e}")
-        await interaction.response.send_message("❌ An unexpected error occurred.", ephemeral=True)
-
+    
 # 📌 Slash command: /item_price_graph
 @app_commands.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
 @app_commands.describe(item="Name of the item to graph (e.g., Xanax)")
@@ -138,30 +135,39 @@ async def item_price_graph(interaction: Interaction, item: str):
         print(f"❌ Error in /item_price_graph: {e}")
         await interaction.response.send_message("❌ An error occurred while generating the graph.", ephemeral=True)
 
-@app_commands.command(name="add_tracked_item", description="Add a new item to the tracked item list (max 20)")
-@app_commands.describe(name="Item name (e.g., Xanax)", item_id="Torn Item ID (e.g., 206)")
-async def add_tracked_item_command(interaction: Interaction, name: str, item_id: str):
+@app_commands.command(name="add_tracked_item", description="Add a new item to track, with optional buy/sell thresholds")
+@app_commands.describe(
+    name="Item name (e.g., Xanax)",
+    item_id="Torn Item ID (e.g., 206)",
+    buy_price="Optional: Buy threshold price",
+    sell_price="Optional: Sell threshold price"
+)
+async def add_tracked_item_command(interaction: discord.Interaction, name: str, item_id: str, buy_price: int = None, sell_price: int = None):
     try:
-        current = load_tracked_items()
-        if len(current) >= 20:
-            await interaction.response.send_message(
-                "❌ Cannot add item — max of 20 tracked items reached.", ephemeral=True
-            )
+        # Add to tracked items
+        success = add_tracked_item(name, item_id)
+
+        if not success:
+            await interaction.response.send_message(f"⚠️ **{name}** is already tracked.", ephemeral=True)
             return
 
-        success = add_tracked_item(name, item_id)
-        if success:
-            await interaction.response.send_message(
-                f"✅ **{name.title()}** added to tracked items (ID: {item_id})", ephemeral=True
-            )
-        else:
-            await interaction.response.send_message(
-                f"⚠️ Item **{name.title()}** already exists in the tracked list.", ephemeral=True
-            )
-    except Exception as e:
-        print(f"❌ Error in add_tracked_item: {e}")
-        await interaction.response.send_message("❌ Failed to add item.", ephemeral=True)
+        # Set optional thresholds
+        normalised = normalise_item_name(name)
+        messages = [f"✅ **{name}** added to tracked items (ID: {item_id})."]
 
+        if buy_price is not None:
+            set_item_buy_threshold(normalised, buy_price)
+            messages.append(f"➡️ Buy threshold set: ≤ {buy_price:,} T$")
+
+        if sell_price is not None:
+            set_item_sell_threshold(normalised, sell_price)
+            messages.append(f"➡️ Sell threshold set: ≥ {sell_price:,} T$")
+
+        await interaction.response.send_message("\n".join(messages), ephemeral=True)
+
+    except Exception as e:
+        print(f"❌ Error in add_tracked_item_command: {e}")
+        await interaction.response.send_message("❌ An error occurred while adding the item.", ephemeral=True)
 
 @app_commands.command(name="remove_tracked_item", description="Remove an item from the tracked list")
 @app_commands.describe(name="Item name (e.g., Xanax)")
