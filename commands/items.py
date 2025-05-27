@@ -178,7 +178,7 @@ async def remove_tracked_item_command(interaction: Interaction, name: str):
 @app_commands.command(name="list_tracked_items", description="List all currently tracked items and their Torn IDs")
 async def list_tracked_items_command(interaction: Interaction):
     try:
-        tracked = list_tracked_items()
+        tracked = load_tracked_items()
         if not tracked:
             await interaction.response.send_message("ℹ️ No items are currently being tracked.", ephemeral=True)
             return
