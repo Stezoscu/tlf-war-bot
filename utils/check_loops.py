@@ -10,7 +10,6 @@ from constants import ITEM_HISTORY_FILE
 
 
 from constants import (
-    ITEM_IDS,
     ITEM_THRESHOLD_FILE,
     ITEM_HISTORY_FILE,
     POINT_HISTORY_FILE,
