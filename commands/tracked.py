@@ -6,16 +6,6 @@ from utils.tracked_items import (
     remove_tracked_item
 )
 
-@app_commands.command(name="list_tracked_items", description="List all currently tracked items and their IDs")
-async def list_tracked_items(interaction: discord.Interaction):
-    items = load_tracked_items()
-    if not items:
-        await interaction.response.send_message("📦 No items are currently being tracked.")
-        return
-    message = "**📋 Tracked Items:**\n"
-    for name, item_id in items.items():
-        message += f"- {name} (ID: {item_id})\n"
-    await interaction.response.send_message(message)
 
 @app_commands.command(name="add_tracked_item", description="Add a new item to the tracked list")
 @app_commands.describe(name="Item name", item_id="Item ID from Torn")

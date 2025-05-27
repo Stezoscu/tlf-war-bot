@@ -13,7 +13,7 @@ from utils.tracked_items import load_tracked_items
 import matplotlib.pyplot as plt
 from io import BytesIO
 from utils.history import load_item_price_history
-from utils.items import add_tracked_item, remove_tracked_item, list_tracked_items
+from utils.tracked_items import add_tracked_item, remove_tracked_item, list_tracked_items
 
 # 📌 Slash command: /set_item_buy_price
 @app_commands.command(name="set_item_buy_price", description="Set buy threshold for an item")
@@ -176,9 +176,9 @@ async def remove_tracked_item_command(interaction: Interaction, name: str):
         await interaction.response.send_message("❌ Failed to remove item.", ephemeral=True)
 
 @app_commands.command(name="list_tracked_items", description="List all currently tracked items and their Torn IDs")
-async def list_tracked_items(interaction: Interaction):
+async def list_tracked_items_command(interaction: Interaction):
     try:
-        tracked = load_tracked_items()
+        tracked = list_tracked_items()
         if not tracked:
             await interaction.response.send_message("ℹ️ No items are currently being tracked.", ephemeral=True)
             return
