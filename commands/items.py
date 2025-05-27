@@ -137,7 +137,7 @@ async def item_price_graph(interaction: Interaction, item: str):
         print(f"❌ Error in /item_price_graph: {e}")
         await interaction.response.send_message("❌ An error occurred while generating the graph.", ephemeral=True)
 
-        @app_commands.command(name="add_tracked_item", description="Add a new item to the tracked item list (max 20)")
+@app_commands.command(name="add_tracked_item", description="Add a new item to the tracked item list (max 20)")
 @app_commands.describe(name="Item name (e.g., Xanax)", item_id="Torn Item ID (e.g., 206)")
 async def add_tracked_item_command(interaction: Interaction, name: str, item_id: str):
     try:
