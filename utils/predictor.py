@@ -11,7 +11,6 @@ from pathlib import Path
 import discord
 from discord import app_commands
 
-from constants import TRACKED_ITEMS
 
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
     lead_gain_per_hour = current_lead / current_hour

@@ -2,7 +2,7 @@ import json
 import time
 import os
 from datetime import datetime, timedelta
-from constants import ITEM_HISTORY_FILE, TRACKED_ITEMS, POINT_HISTORY_FILE
+from constants import ITEM_HISTORY_FILE, POINT_HISTORY_FILE
 
 
 def load_item_price_history():

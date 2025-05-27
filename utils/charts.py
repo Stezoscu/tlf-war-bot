@@ -9,7 +9,6 @@ import requests
 
 from constants import ITEM_HISTORY_FILE
 from constants import POINT_HISTORY_FILE
-from constants import TRACKED_ITEMS
 from utils.history import load_item_price_history
 from utils.items import normalise_item_name
 from utils.tracked_items import load_tracked_items
