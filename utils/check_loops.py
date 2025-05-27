@@ -63,12 +63,16 @@ async def check_point_market_loop(bot):
     except Exception as e:
         print(f"[Error checking point market] {e}")
 
-@tasks.loop(minutes=1)
-async def check_item_prices_loop(bot):
+@tasks.loop(seconds=20)
+async def check_item_prices():
     await bot.wait_until_ready()
+    global ITEM_SILENT_CHECKS
+
     api_key = os.getenv("TORN_API_KEY")
     if not api_key:
         return
+
+    tracked_items = load_tracked_items()
 
     try:
         with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
@@ -81,11 +85,9 @@ async def check_item_prices_loop(bot):
         print("⚠️ Channel 'trading-alerts' not found.")
         return
 
-    for pretty_name, clean_key in TRACKED_ITEMS.items():
-        item_id = ITEM_IDS.get(clean_key)
-        if not item_id:
-            continue
+    alert_triggered = False
 
+    for pretty_name, item_id in tracked_items.items():
         try:
             url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
             response = requests.get(url)
@@ -96,7 +98,9 @@ async def check_item_prices_loop(bot):
                 continue
 
             lowest_price = min(listing["price"] for listing in listings)
-            item_threshold = thresholds.get(clean_key, {})
+            log_item_price(item_id, lowest_price)
+
+            item_threshold = thresholds.get(pretty_name.lower(), {})
             alert_msg = None
 
             if item_threshold.get("buy") and lowest_price <= item_threshold["buy"]:
@@ -106,54 +110,22 @@ async def check_item_prices_loop(bot):
 
             if alert_msg:
                 await channel.send(alert_msg)
+                alert_triggered = True
+                ITEM_SILENT_CHECKS = 0
 
         except Exception as e:
             print(f"[Error checking price for {pretty_name}] {e}")
 
-@tasks.loop(minutes=30)
-async def log_item_price_history_loop(bot):
-    await bot.wait_until_ready()
-    api_key = os.getenv("TORN_API_KEY")
-    if not api_key:
-        return
-
-    try:
-        with open(ITEM_HISTORY_FILE, "r", encoding="utf-8") as f:
-            history = json.load(f)
-    except FileNotFoundError:
-        history = {}
-
-    now = int(time.time())
-    one_week_ago = now - 7 * 86400
-
-    for pretty_name, clean_key in TRACKED_ITEMS.items():
-        item_id = ITEM_IDS.get(clean_key)
-        if not item_id:
-            continue
-
+    ITEM_SILENT_CHECKS += 1
+    if ITEM_SILENT_CHECKS >= 180:  # 20 sec * 180 = 1 hour
         try:
-            url = f"https://api.torn.com/v2/market/{item_id}/itemmarket?key={api_key}"
-            response = requests.get(url)
-            data = response.json()
+            sample_item = next(iter(tracked_items))
+            await channel.send(f"🔍 Item price check running — no alerts in the past hour (e.g., {sample_item}).")
+            ITEM_SILENT_CHECKS = 0
+        except StopIteration:
+            pass
 
-            listings = data.get("itemmarket", {}).get("listings", [])
-            if not listings:
-                continue
-
-            lowest_price = min(listing["price"] for listing in listings)
-
-            if clean_key not in history:
-                history[clean_key] = []
-
-            history[clean_key].append({"timestamp": now, "price": lowest_price})
-            history[clean_key] = [entry for entry in history[clean_key] if entry["timestamp"] >= one_week_ago]
-
-        except Exception as e:
-            print(f"[Error logging history for {pretty_name}] {e}")
-
-    with open(ITEM_HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=2)
-
+        
 @tasks.loop(hours=24)
 async def daily_trim_item_history_loop(bot):
     await bot.wait_until_ready()
