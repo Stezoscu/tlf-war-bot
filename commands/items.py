@@ -176,7 +176,6 @@ async def remove_tracked_item_command(interaction: Interaction, name: str):
         await interaction.response.send_message("❌ Failed to remove item.", ephemeral=True)
 
 @app_commands.command(name="list_tracked_items", description="List all currently tracked items and their Torn IDs")
-@app_commands.describe(name="Full list of tracked items, max 20")
 async def list_tracked_items_command(interaction: Interaction):
     try:
         tracked = load_tracked_items()
