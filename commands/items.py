@@ -43,27 +43,40 @@ async def check_item_price(interaction: Interaction, item: str):
     try:
         print(f"🔍 Received /check_item_price for item: {item}")
 
+        # Load tracked items from JSON
+        tracked_items = load_tracked_items()
+
+        # Normalise input
         normalised = normalise_item_name(item)
-        if not normalised or normalised not in TRACKED_ITEMS.values():
-            supported = ", ".join(TRACKED_ITEMS.keys())
+
+        # Find match ignoring case
+        match = next(
+            ((pretty_name, item_id) for pretty_name, item_id in tracked_items.items()
+             if pretty_name.lower() == normalised),
+            None
+        )
+
+        if not match:
+            supported = ", ".join(tracked_items.keys())
             await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
             return
 
-        item_id = ITEM_IDS.get(normalised)
-        if not item_id:
-            await interaction.response.send_message("❌ Item ID not found for the given item.", ephemeral=True)
-            return
-
+        pretty_name, item_id = match
         price, quantity = fetch_item_market_price(item_id)
-        if price is None:
-            await interaction.response.send_message(f"⚠️ No item market listings found for **{item.title()}**.", ephemeral=True)
-            return
 
-        pretty_name = next(k for k, v in TRACKED_ITEMS.items() if v == normalised)
+        if price is None:
+            await interaction.response.send_message(
+                f"⚠️ No item market listings found for **{pretty_name}**.", ephemeral=True
+            )
+            return
 
         await interaction.response.send_message(
             f"📦 **{pretty_name}** lowest item market price: **{price:n}** T$ for {quantity} units"
         )
+
+    except Exception as e:
+        print(f"❌ Error fetching item price: {e}")
+        await interaction.response.send_message("❌ An unexpected error occurred.", ephemeral=True)
 
     except Exception as e:
         print(f"❌ Error in check_item_price: {e}")

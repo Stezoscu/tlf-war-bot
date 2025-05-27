@@ -5,26 +5,27 @@ TRACKED_ITEMS_FILE = "/mnt/data/tracked_items.json"
 MAX_TRACKED_ITEMS = 20
 
 DEFAULT_TRACKED_ITEMS = {
-    "xanax": "206",
-    "erotic dvds": "366",
-    "feathery hotel coupon": "367",
-    "poison mistletoe": "865"
+    "Xanax": "206",
+    "Erotic DVDs": "366",
+    "Feathery Hotel Coupon": "367",
+    "Poison Mistletoe": "865"
 }
 
 def ensure_tracked_items_file():
     if not os.path.exists(TRACKED_ITEMS_FILE):
-        print("📦 tracked_items.json not found. Creating default version.")
         with open(TRACKED_ITEMS_FILE, "w", encoding="utf-8") as f:
             json.dump(DEFAULT_TRACKED_ITEMS, f, indent=2)
+        print("✅ Created default tracked_items.json")
 
 def load_tracked_items():
     ensure_tracked_items_file()
     with open(TRACKED_ITEMS_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def save_tracked_items(items):
+def save_tracked_items(data):
     with open(TRACKED_ITEMS_FILE, "w", encoding="utf-8") as f:
-        json.dump(items, f, indent=2)
+        json.dump(data, f, indent=2)
+
 
 def add_tracked_item(name, item_id):
     items = load_tracked_items()
