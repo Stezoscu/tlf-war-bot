@@ -5,7 +5,7 @@ import requests
 from datetime import datetime
 from discord.ext import tasks
 import discord
-from utils.items import load_tracked_items
+from utils.tracked_items import load_tracked_items
 from constants import ITEM_HISTORY_FILE
 
 
