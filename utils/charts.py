@@ -10,34 +10,33 @@ import requests
 from constants import ITEM_HISTORY_FILE
 from constants import POINT_HISTORY_FILE
 from constants import TRACKED_ITEMS
+from utils.history import load_item_price_history
 from utils.items import normalise_item_name
+from utils.tracked_items import load_tracked_items
 
 
 
 async def generate_item_price_graph(interaction: discord.Interaction, item: str):
     await interaction.response.defer()
 
+    tracked_items = load_tracked_items()
+    history_data = load_item_price_history()
+
     normalised = normalise_item_name(item)
-    if not normalised or normalised not in TRACKED_ITEMS.values():
-        supported = ", ".join(TRACKED_ITEMS.keys())
+    if not normalised or normalised not in tracked_items.values():
+        supported = ", ".join(tracked_items.keys())
         await interaction.followup.send(f"❌ Unsupported item. Try: {supported}")
         return
 
-    try:
-        with open(ITEM_HISTORY_FILE, "r", encoding="utf-8") as f:
-            history = json.load(f)
-    except FileNotFoundError:
-        await interaction.followup.send("❌ No price history data found.")
-        return
-
-    if normalised not in history or not history[normalised]:
-        pretty_name = next((k for k, v in TRACKED_ITEMS.items() if v == normalised), item.title())
+    price_history = history_data.get(normalised, [])
+    if not price_history:
+        pretty_name = next((k for k, v in tracked_items.items() if v == normalised), item.title())
         await interaction.followup.send(f"❌ No data found for **{pretty_name}**.")
         return
 
-    entries = history[normalised]
-    times = [datetime.utcfromtimestamp(e["timestamp"]).strftime("%d %b %H:%M") for e in entries]
-    prices = [e["price"] for e in entries]
+    times = [datetime.utcfromtimestamp(entry["timestamp"]).strftime("%d %b %H:%M") for entry in price_history]
+    prices = [entry["price"] for entry in price_history]
+    pretty_name = next((k for k, v in tracked_items.items() if v == normalised), item.title())
 
     fig, ax = plt.subplots()
     ax.plot(times, prices, marker="o", linestyle="-", label=pretty_name)
