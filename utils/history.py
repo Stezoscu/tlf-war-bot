@@ -5,6 +5,17 @@ from datetime import datetime, timedelta
 from constants import ITEM_HISTORY_FILE, TRACKED_ITEMS, POINT_HISTORY_FILE
 
 
+def load_item_price_history():
+    """Load historical price data for tracked items."""
+    try:
+        with open(ITEM_HISTORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+    except json.JSONDecodeError:
+        print("❌ item_price_history.json is invalid.")
+        return {}
+
 def log_item_price(item_key, price):
     timestamp = int(time.time())
 
