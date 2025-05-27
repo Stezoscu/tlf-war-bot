@@ -3,12 +3,16 @@ import os
 import requests
 from discord import app_commands
 from discord import Interaction
+from discord import File
 from constants import TRACKED_ITEMS, ITEM_IDS
 from utils.thresholds import set_item_buy_threshold, set_item_sell_threshold
 from utils.items import fetch_item_market_price
 from utils.items import normalise_item_name
 from utils.charts import generate_item_price_graph
 from utils.tracked_items import load_tracked_items
+import matplotlib.pyplot as plt
+from io import BytesIO
+from utils.history import load_item_price_history
 
 # 📌 Slash command: /set_item_buy_price
 @app_commands.command(name="set_item_buy_price", description="Set buy threshold for an item")
@@ -84,22 +88,50 @@ async def check_item_price(interaction: Interaction, item: str):
 
 # 📌 Slash command: /item_price_graph
 @app_commands.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
-@app_commands.describe(item="Tracked item name (e.g., Xanax)")
-async def item_price_graph(interaction: discord.Interaction, item: str):
-    normalised = normalise_item_name(item)
-    if not normalised or normalised not in TRACKED_ITEMS.values():
-        supported = ", ".join(TRACKED_ITEMS.keys())
-        await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}")
-        return
+@app_commands.describe(item="Name of the item to graph (e.g., Xanax)")
+async def item_price_graph(interaction: Interaction, item: str):
+    try:
+        print(f"📈 Received /item_price_graph for item: {item}")
+        tracked_items = load_tracked_items()
+        history_data = load_item_price_history()
 
-    graph_bytes = generate_item_price_graph(normalised)
+        normalised = normalise_item_name(item)
+        if normalised not in tracked_items.values():
+            supported = ", ".join(tracked_items.keys())
+            await interaction.response.send_message(
+                f"❌ Item not tracked. Try one of: {supported}", ephemeral=True
+            )
+            return
 
-    if not graph_bytes:
-        await interaction.response.send_message(f"❌ No price history available for **{item.title()}**.")
-        return
+        price_history = history_data.get(normalised, [])
+        if not price_history:
+            await interaction.response.send_message(
+                f"⚠️ No price history available for **{item.title()}**", ephemeral=True
+            )
+            return
 
-    file = discord.File(graph_bytes, filename=f"{normalised}_trend.png")
-    await interaction.response.send_message(
-        content=f"📈 Price trend for **{item.title()}** over the last 7 days:",
-        file=file
-    )
+        timestamps = [entry["timestamp"] for entry in price_history]
+        prices = [entry["price"] for entry in price_history]
+
+        plt.figure()
+        plt.plot(timestamps, prices, marker="o")
+        plt.title(f"Price Trend for {item.title()}")
+        plt.xlabel("Timestamp")
+        plt.ylabel("Price (T$)")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        buf = BytesIO()
+        plt.savefig(buf, format="png")
+        buf.seek(0)
+        plt.close()
+
+        file = File(fp=buf, filename="item_price_graph.png")
+        await interaction.response.send_message(
+            content=f"📊 Price trend for **{item.title()}** over the past week:",
+            file=file
+        )
+
+    except Exception as e:
+        print(f"❌ Error in /item_price_graph: {e}")
+        await interaction.response.send_message("❌ An error occurred while generating the graph.", ephemeral=True)
