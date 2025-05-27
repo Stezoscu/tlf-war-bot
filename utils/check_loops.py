@@ -21,6 +21,7 @@ from utils.thresholds import load_thresholds, load_item_thresholds
 from utils.history import log_point_price, trim_item_price_history
 
 POINTS_SILENT_CHECKS = 0
+ITEM_SILENT_CHECKS = 0
 
 
 
