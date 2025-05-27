@@ -13,7 +13,7 @@ from utils.tracked_items import load_tracked_items
 import matplotlib.pyplot as plt
 from io import BytesIO
 from utils.history import load_item_price_history
-from utils.tracked_items import add_tracked_item, remove_tracked_item, list_tracked_items
+from utils.tracked_items import add_tracked_item, remove_tracked_item, load_tracked_items
 
 # 📌 Slash command: /set_item_buy_price
 @app_commands.command(name="set_item_buy_price", description="Set buy threshold for an item")
