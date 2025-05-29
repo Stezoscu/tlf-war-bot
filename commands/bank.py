@@ -5,7 +5,6 @@ from utils.bank import update_balance, get_balance
 
 YOUR_DISCORD_USER_ID = 521438347705450507  # Replace with your actual ID
 
-@commands.command()
 @app_commands.command(name="deposit", description="Deposit T$ into someone's Bank of Seb account")
 @app_commands.describe(user="User to deposit for", amount="Amount to deposit")
 async def deposit(interaction: discord.Interaction, user: discord.User, amount: int):
