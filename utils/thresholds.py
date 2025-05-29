@@ -3,7 +3,8 @@ import os
 import discord
 import json
 from constants import THRESHOLDS_FILE
-from utils.tracked_items import load_combined_items_data, normalise_item_name
+from utils.tracked_items import load_combined_items_data
+from utils.normalise import normalise_item_name
 
 # 🔄 Load just point thresholds (points.json stays separate)
 def load_thresholds():

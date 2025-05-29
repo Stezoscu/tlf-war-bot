@@ -3,7 +3,7 @@ import json
 import shutil
 from typing import Optional
 from constants import DEFAULT_COMBINED_ITEMS_FILE, MOUNTED_COMBINED_ITEMS_FILE
-from utils.thresholds import normalise_item_name
+from utils.normalise import normalise_item_name
 
 # Constants
 COMBINED_TRACKED_ITEMS_FILE = MOUNTED_COMBINED_ITEMS_FILE
