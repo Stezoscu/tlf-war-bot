@@ -8,12 +8,15 @@ from commands.warpredict import warpredict, autopredict
 from commands.perks import check_gear_perk, list_gear_perks, check_job_perk, list_jobs, list_job_perks
 from commands.points import set_points_buy, set_points_sell, check_points_price
 from commands.items import check_item_price, item_price_graph, add_tracked_item_command, remove_tracked_item_command, list_tracked_items_command, set_item_threshold
+from commands.bank import deposit, withdraw, check_statement
+
 # Import tracked item commands
 
 # Import utility functions and background tasks
 from utils.thresholds import post_threshold_summary
 from utils.charts import post_hourly_point_graph
 from utils.tracked_items import initialise_combined_tracked_file
+from utils.bank import initialise_bank_file
 from utils.check_loops import (
     start_loops,  # This will start all loops and inject bot
 )
@@ -46,6 +49,10 @@ async def on_ready():
         bot.tree.add_command(add_tracked_item_command, guild=guild)
         bot.tree.add_command(remove_tracked_item_command, guild=guild)
         bot.tree.add_command(list_tracked_items_command, guild=guild)
+        bot.tree.add_command(deposit, guild=guild)
+        bot.tree.add_command(withdraw, guild=guild)
+        bot.tree.add_command(check_statement, guild=guild)
+
 
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Synced {len(synced)} commands to guild {guild.id}")
@@ -53,6 +60,7 @@ async def on_ready():
         # Perform startup tasks
         
         initialise_combined_tracked_file()
+        initialise_bank_file()
         await post_threshold_summary(bot)
         await post_hourly_point_graph(bot)
         
