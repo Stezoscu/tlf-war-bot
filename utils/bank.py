@@ -32,3 +32,7 @@ def update_balance(user_id: int, amount: int):
     uid = str(user_id)
     data[uid] = data.get(uid, 0) + amount
     save_bank_data(data)
+
+def get_all_balances() -> dict:
+    """Return the full dict of user_id -> balance."""
+    return load_bank_data()
