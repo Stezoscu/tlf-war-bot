@@ -8,7 +8,7 @@ from commands.warpredict import warpredict, autopredict
 from commands.perks import check_gear_perk, list_gear_perks, check_job_perk, list_jobs, list_job_perks
 from commands.points import set_points_buy, set_points_sell, check_points_price
 from commands.items import check_item_price, item_price_graph, add_tracked_item_command, remove_tracked_item_command, list_tracked_items_command, set_item_threshold
-from commands.bank import deposit, withdraw, check_statement
+from commands.bank import deposit, withdraw, check_statement, loan_summary, bank_adjust
 
 # Import tracked item commands
 
@@ -52,6 +52,9 @@ async def on_ready():
         bot.tree.add_command(deposit, guild=guild)
         bot.tree.add_command(withdraw, guild=guild)
         bot.tree.add_command(check_statement, guild=guild)
+        bot.tree.add_command(loan_summary, guild=guild)
+        bot.tree.add_command(bank_adjust, guild=guild)
+        
 
 
         synced = await bot.tree.sync(guild=guild)
