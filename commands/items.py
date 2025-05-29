@@ -3,7 +3,8 @@ import discord
 import os
 import requests
 from discord import app_commands, Interaction, File
-from utils.items import fetch_item_market_price, normalise_item_name
+from utils.items import fetch_item_market_price
+from utils.normalise import normalise_item_name
 from utils.charts import generate_item_price_graph
 from utils.history import load_item_price_history
 from utils.tracked_items import (

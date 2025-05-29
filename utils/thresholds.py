@@ -40,11 +40,4 @@ async def post_threshold_summary(bot):
 
     await channel.send(message)
 
-# 🔤 Normalise input name to match combined items key
-def normalise_item_name(name: str) -> str:
-    data = load_combined_items_data()
-    name = name.strip().lower()
-    for key in data:
-        if key.lower() == name:
-            return key
-    return None
+
