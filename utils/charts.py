@@ -7,35 +7,33 @@ from discord.ext import tasks
 import discord
 import requests
 
-from constants import ITEM_HISTORY_FILE
-from constants import POINT_HISTORY_FILE
+from constants import ITEM_HISTORY_FILE, POINT_HISTORY_FILE
 from utils.history import load_item_price_history
 from utils.items import normalise_item_name
-from utils.tracked_items import load_tracked_items
-
+from utils.tracked_items import load_combined_items_data
 
 
 async def generate_item_price_graph(interaction: discord.Interaction, item: str):
     await interaction.response.defer()
 
-    tracked_items = load_tracked_items()
+    combined_items = load_combined_items_data()
     history_data = load_item_price_history()
 
     normalised = normalise_item_name(item)
-    if not normalised or normalised not in tracked_items.values():
-        supported = ", ".join(tracked_items.keys())
-        await interaction.followup.send(f"❌ Unsupported item. Try: {supported}")
+    if not normalised or normalised not in combined_items:
+        supported = ", ".join(name.title() for name in combined_items.keys())
+        await interaction.followup.send(f"❌ Unsupported item. Try one of: {supported}")
         return
 
     price_history = history_data.get(normalised, [])
+    pretty_name = item.title()
+
     if not price_history:
-        pretty_name = next((k for k, v in tracked_items.items() if v == normalised), item.title())
         await interaction.followup.send(f"❌ No data found for **{pretty_name}**.")
         return
 
     times = [datetime.utcfromtimestamp(entry["timestamp"]).strftime("%d %b %H:%M") for entry in price_history]
     prices = [entry["price"] for entry in price_history]
-    pretty_name = next((k for k, v in tracked_items.items() if v == normalised), item.title())
 
     fig, ax = plt.subplots()
     ax.plot(times, prices, marker="o", linestyle="-", label=pretty_name)
@@ -53,6 +51,7 @@ async def generate_item_price_graph(interaction: discord.Interaction, item: str)
     plt.close()
 
     await interaction.followup.send(file=file)
+
 
 @tasks.loop(hours=12)
 async def post_hourly_point_graph(bot):
@@ -89,6 +88,7 @@ async def post_hourly_point_graph(bot):
 
     except Exception as e:
         print(f"[Hourly graph error] {e}")
+
 
 def get_points_price():
     api_key = os.getenv("TORN_API_KEY")

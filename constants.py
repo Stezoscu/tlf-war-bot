@@ -16,6 +16,8 @@ POINT_HISTORY_FILE = "/mnt/data/point_price_history.json"
 ITEM_ALERTS_FILE = "/mnt/data/item_price_alerts.json"
 ITEM_HISTORY_FILE = "/mnt/data/item_price_history.json"
 ITEM_THRESHOLD_FILE = "/mnt/data/item_thresholds.json"
+DEFAULT_COMBINED_ITEMS_FILE = "data/default_combined_items.json"
+MOUNTED_COMBINED_ITEMS_FILE = "/mnt/data/combined_tracked_items.json"
 POINTS_SILENT_CHECKS = 0
 
 

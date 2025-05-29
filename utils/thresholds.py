@@ -1,74 +1,11 @@
-# utils/thresholds.py
 
 import os
 import discord
 import json
-from constants import ITEM_THRESHOLD_FILE, THRESHOLDS_FILE
-from utils.tracked_items import load_tracked_items
+from constants import THRESHOLDS_FILE
+from utils.tracked_items import load_combined_items_data, normalise_item_name
 
-tracked_items = load_tracked_items()
-
-async def post_threshold_summary(bot):
-    channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
-    if not channel:
-        print("⚠️ 'trading-alerts' channel not found.")
-        return
-
-    try:
-        with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
-            item_thresholds = json.load(f)
-    except FileNotFoundError:
-        item_thresholds = {}
-
-    point_thresholds = load_thresholds()
-    
-
-    message = "**Current Alert Thresholds**\n"
-
-    if point_thresholds.get("buy") or point_thresholds.get("sell"):
-        message += f"\n**Points:** Buy ≤ {point_thresholds.get('buy', 'N/A')} | Sell ≥ {point_thresholds.get('sell', 'N/A')}"
-
-    for item_key, values in item_thresholds.items():
-        pretty_name = next((k for k, v in tracked_items.items() if v == item_key), item_key)
-        message += f"\n**{pretty_name}:** Buy ≤ {values.get('buy', 'N/A')} | Sell ≥ {values.get('sell', 'N/A')}"
-
-    await channel.send(message)
-
-def clean_item_thresholds():
-    try:
-        with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
-            thresholds = json.load(f)
-    except FileNotFoundError:
-        thresholds = {}
-
-    valid_keys = set(tracked_items.values())
-    cleaned = {k: v for k, v in thresholds.items() if k in valid_keys}
-
-    if cleaned != thresholds:
-        with open(ITEM_THRESHOLD_FILE, "w", encoding="utf-8") as f:
-            json.dump(cleaned, f, indent=4)
-
-        print("🧹 Cleaned invalid keys from item thresholds.")
-
-def load_item_thresholds():
-    if not os.path.exists(ITEM_THRESHOLD_FILE):
-        data = {value: {"buy": None, "sell": None} for value in TRACKED_ITEMS.values()}
-        save_item_thresholds(data)
-        return data
-
-    with open(ITEM_THRESHOLD_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def save_item_thresholds(data):
-    with open(ITEM_THRESHOLD_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4)
-
-def normalise_item_name(name: str) -> str:
-    for display_name, internal_key in tracked_items.items():
-        if name.lower().strip() == display_name.lower() or name.lower().strip() == internal_key:
-            return internal_key
-    return None
-
+# 🔄 Load just point thresholds (points.json stays separate)
 def load_thresholds():
     try:
         with open(THRESHOLDS_FILE, "r", encoding="utf-8") as f:
@@ -80,18 +17,33 @@ def save_thresholds(thresholds):
     with open(THRESHOLDS_FILE, "w", encoding="utf-8") as f:
         json.dump(thresholds, f, indent=4)
 
-def set_item_buy_threshold(item_key: str, threshold: int):
-    """Set the buy threshold for an item."""
-    thresholds = load_item_thresholds()
-    if item_key not in thresholds:
-        thresholds[item_key] = {}
-    thresholds[item_key]["buy"] = threshold
-    save_item_thresholds(thresholds)
+# ✅ Post summary of all thresholds (points + items)
+async def post_threshold_summary(bot):
+    channel = discord.utils.get(bot.get_all_channels(), name="trading-alerts")
+    if not channel:
+        print("⚠️ 'trading-alerts' channel not found.")
+        return
 
-def set_item_sell_threshold(item_key: str, threshold: int):
-    """Set the sell threshold for an item."""
-    thresholds = load_item_thresholds()
-    if item_key not in thresholds:
-        thresholds[item_key] = {}
-    thresholds[item_key]["sell"] = threshold
-    save_item_thresholds(thresholds)
+    point_thresholds = load_thresholds()
+    combined_items = load_combined_items_data()
+
+    message = "**Current Alert Thresholds**\n"
+
+    if point_thresholds.get("buy") or point_thresholds.get("sell"):
+        message += f"\n**Points:** Buy ≤ {point_thresholds.get('buy', 'N/A')} | Sell ≥ {point_thresholds.get('sell', 'N/A')}"
+
+    for name, values in combined_items.items():
+        buy = values.get("buy", "N/A")
+        sell = values.get("sell", "N/A")
+        message += f"\n**{name.title()}**: Buy ≤ {buy} | Sell ≥ {sell}"
+
+    await channel.send(message)
+
+# 🔤 Normalise input name to match combined items key
+def normalise_item_name(name: str) -> str:
+    data = load_combined_items_data()
+    name = name.strip().lower()
+    for key in data:
+        if key.lower() == name:
+            return key
+    return None

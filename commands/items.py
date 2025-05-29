@@ -1,101 +1,90 @@
+
 import discord
 import os
 import requests
-from discord import app_commands
-from discord import Interaction
-from discord import File
-from utils.thresholds import set_item_buy_threshold, set_item_sell_threshold
-from utils.items import fetch_item_market_price
-from utils.items import normalise_item_name
+from discord import app_commands, Interaction, File
+from utils.items import fetch_item_market_price, normalise_item_name
 from utils.charts import generate_item_price_graph
-from utils.tracked_items import load_tracked_items
+from utils.history import load_item_price_history
+from utils.tracked_items import (
+    add_tracked_item,
+    remove_tracked_item,
+    load_combined_items_data,
+    update_item_threshold
+)
+from typing import Optional
 import matplotlib.pyplot as plt
 from io import BytesIO
-from utils.history import load_item_price_history
-from utils.tracked_items import add_tracked_item, remove_tracked_item, load_tracked_items
 
-# 📌 Slash command: /set_item_buy_price
-@app_commands.command(name="set_item_buy_price", description="Set buy threshold for an item")
-@app_commands.describe(item="Tracked item name (e.g., Xanax)", price="Buy threshold price")
-async def set_item_buy_price(interaction: discord.Interaction, item: str, price: int):
-    normalised = normalise_item_name(item)
-    tracked_items = load_tracked_items()
-    if not normalised or normalised not in tracked_items.values():
-        supported = ", ".join(tracked_items.keys())
-        await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
-        return
-
-    set_item_buy_threshold(normalised, price)
-    await interaction.response.send_message(f"✅ Buy threshold set for **{item.title()}**: ≤ {price:,} T$", ephemeral=True)
-
-# 📌 Slash command: /set_item_sell_price
-@app_commands.command(name="set_item_sell_price", description="Set sell threshold for an item")
-@app_commands.describe(item="Tracked item name (e.g., Xanax)", price="Sell threshold price")
-async def set_item_sell_price(interaction: discord.Interaction, item: str, price: int):
-    normalised = normalise_item_name(item)
-    TRACKED_ITEMS = tracked_items = load_tracked_items()
-    if not normalised or normalised not in TRACKED_ITEMS.values():
-        supported = ", ".join(TRACKED_ITEMS.keys())
-        await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
-        return
-
-    set_item_sell_threshold(normalised, price)
-    await interaction.response.send_message(f"✅ Sell threshold set for **{item.title()}**: ≥ {price:,} T$", ephemeral=True)
-
-# 📌 Slash command: /check_item_price
-@app_commands.command(name="check_item_price", description="Check the current lowest item market price of a tracked item")
-@app_commands.describe(item="Name of the item (e.g., Xanax)")
-async def check_item_price(interaction: Interaction, item: str):
+@app_commands.command(name="set_item_threshold", description="Set buy and/or sell thresholds for a tracked item")
+@app_commands.describe(
+    item="Tracked item name (e.g., Xanax)",
+    buy="Optional buy threshold price (T$)",
+    sell="Optional sell threshold price (T$)"
+)
+async def set_item_threshold(interaction: discord.Interaction, item: str, buy: Optional[int] = None, sell: Optional[int] = None):
     try:
-        print(f"🔍 Received /check_item_price for item: {item}")
+        if buy is None and sell is None:
+            await interaction.response.send_message("⚠️ Please provide at least one of 'buy' or 'sell' thresholds.", ephemeral=True)
+            return
 
-        # Load tracked items from JSON
-        tracked_items = load_tracked_items()
-
-        # Normalise input
+        data = load_combined_items_data()
         normalised = normalise_item_name(item)
 
-        # Find match ignoring case
-        match = next(
-            ((pretty_name, item_id) for pretty_name, item_id in tracked_items.items()
-             if pretty_name.lower() == normalised),
-            None
-        )
-
-        if not match:
-            supported = ", ".join(tracked_items.keys())
+        if normalised not in data:
+            supported = ", ".join(data.keys())
             await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
             return
 
-        pretty_name, item_id = match
-        price, quantity = fetch_item_market_price(item_id)
+        update_item_threshold(item, buy=buy, sell=sell)
 
-        if price is None:
-            await interaction.response.send_message(
-                f"⚠️ No item market listings found for **{pretty_name}**.", ephemeral=True
-            )
-            return
+        parts = []
+        if buy is not None:
+            parts.append(f"Buy ≤ {buy:,} T$")
+        if sell is not None:
+            parts.append(f"Sell ≥ {sell:,} T$")
 
         await interaction.response.send_message(
-            f"📦 **{pretty_name}** lowest item market price: **{price:n}** T$ for {quantity} units"
+            f"✅ Thresholds updated for **{item.title()}**: {' | '.join(parts)}",
+            ephemeral=True
         )
 
     except Exception as e:
-        print(f"❌ Error fetching item price: {e}")
-        await interaction.response.send_message("❌ An unexpected error occurred.", ephemeral=True)
+        print(f"❌ Error in set_item_threshold: {e}")
+        await interaction.response.send_message("❌ An error occurred while setting the thresholds.", ephemeral=True)
 
-    
-# 📌 Slash command: /item_price_graph
+@app_commands.command(name="check_item_price", description="Check current lowest item market price")
+@app_commands.describe(item="Tracked item name (e.g., Xanax)")
+async def check_item_price(interaction: Interaction, item: str):
+    data = load_combined_items_data()
+    normalised = normalise_item_name(item)
+
+    if normalised not in data:
+        supported = ", ".join(data.keys())
+        await interaction.response.send_message(f"❌ Unsupported item. Try: {supported}", ephemeral=True)
+        return
+
+    item_id = data[normalised]["item_id"]
+    price, quantity = fetch_item_market_price(item_id)
+
+    if price is None:
+        await interaction.response.send_message(f"⚠️ No listings for **{item.title()}**", ephemeral=True)
+        return
+
+    await interaction.response.send_message(
+        f"📦 **{item.title()}** lowest market price: **{price:n}** T$ for {quantity} units"
+    )
+
 @app_commands.command(name="item_price_graph", description="Show a price trend graph for a tracked item over the last week")
 @app_commands.describe(item="Name of the item to graph (e.g., Xanax)")
 async def item_price_graph(interaction: Interaction, item: str):
     try:
         print(f"📈 Received /item_price_graph for item: {item}")
-        tracked_items = load_tracked_items()
+        tracked_items = load_combined_items_data()
         history_data = load_item_price_history()
 
         normalised = normalise_item_name(item)
-        if normalised not in tracked_items.values():
+        if normalised not in tracked_items:
             supported = ", ".join(tracked_items.keys())
             await interaction.response.send_message(
                 f"❌ Item not tracked. Try one of: {supported}", ephemeral=True
@@ -144,26 +133,22 @@ async def item_price_graph(interaction: Interaction, item: str):
 )
 async def add_tracked_item_command(interaction: discord.Interaction, name: str, item_id: str, buy_price: int = None, sell_price: int = None):
     try:
-        # Add to tracked items
         success = add_tracked_item(name, item_id)
 
         if not success:
             await interaction.response.send_message(f"⚠️ **{name}** is already tracked.", ephemeral=True)
             return
 
-        # Set optional thresholds
         normalised = normalise_item_name(name)
+        update_item_threshold(name, buy=buy_price, sell=sell_price)
+
         messages = [f"✅ **{name}** added to tracked items (ID: {item_id})."]
-
         if buy_price is not None:
-            set_item_buy_threshold(normalised, buy_price)
             messages.append(f"➡️ Buy threshold set: ≤ {buy_price:,} T$")
-
         if sell_price is not None:
-            set_item_sell_threshold(normalised, sell_price)
             messages.append(f"➡️ Sell threshold set: ≥ {sell_price:,} T$")
 
-        await interaction.response.send_message("\n".join(messages), ephemeral=True)
+        await interaction.response.send_message("".join(messages), ephemeral=True)
 
     except Exception as e:
         print(f"❌ Error in add_tracked_item_command: {e}")
@@ -185,16 +170,16 @@ async def remove_tracked_item_command(interaction: Interaction, name: str):
 @app_commands.command(name="list_tracked_items", description="List all currently tracked items and their Torn IDs")
 async def list_tracked_items_command(interaction: Interaction):
     try:
-        tracked = load_tracked_items()
+        tracked = load_combined_items_data()
         if not tracked:
             await interaction.response.send_message("ℹ️ No items are currently being tracked.", ephemeral=True)
             return
 
-        response = "**📦 Currently Tracked Items:**\n"
-        for name, item_id in tracked.items():
-            response += f"- **{name.title()}** (ID: `{item_id}`)\n"
+        response = "**📦 Currently Tracked Items:**"
+        for name, data in tracked.items():
+            item_id = data["item_id"]
+            response += f"- **{name.title()}** (ID: `{item_id}`)"
 
-                # Handle Discord's 2000 character limit gracefully
         if len(response) > 2000:
             chunks = [response[i:i+1990] for i in range(0, len(response), 1990)]
             for chunk in chunks:

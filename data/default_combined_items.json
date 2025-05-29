@@ -1,0 +1,27 @@
+{
+  "xanax": {
+    "item_id": 206,
+    "buy": 750000,
+    "sell": 850000
+  },
+  "erotic dvds": {
+    "item_id": 366,
+    "buy": 4000000,
+    "sell": 5000000
+  },
+  "feathery hotel coupon": {
+    "item_id": 367,
+    "buy": 11000000,
+    "sell": 13000000
+  },
+  "poison mistle toe": {
+    "item_id": 865,
+    "buy": 48000000,
+    "sell": 55000000        
+  },
+  "business class ticket": {
+    "item_id": 396,
+    "buy": 7000000,
+    "sell": 8000000        
+  }
+}
