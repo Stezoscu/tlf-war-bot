@@ -3,12 +3,19 @@ import json
 import shutil
 from typing import Optional
 from constants import DEFAULT_COMBINED_ITEMS_FILE, MOUNTED_COMBINED_ITEMS_FILE
-from utils.normalise import normalise_item_name
+
 
 # Constants
 COMBINED_TRACKED_ITEMS_FILE = MOUNTED_COMBINED_ITEMS_FILE
 MAX_TRACKED_ITEMS = 20
 
+def normalise_item_name(name: str) -> str:
+    """Resolve item name or ID to its internal key (case-insensitive)."""
+    tracked = list_tracked_items()
+    for display_name, item_id in tracked.items():
+        if name.lower().strip() == display_name.lower() or name.lower().strip() == str(item_id):
+            return display_name
+    return name.strip()
 
 def initialise_combined_tracked_file():
     """Ensure the combined tracked items file exists on the mounted volume."""
