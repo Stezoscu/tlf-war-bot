@@ -11,7 +11,7 @@ from commands.items import check_item_price, item_price_graph, add_tracked_item_
 from commands.bank import deposit, withdraw, check_statement, loan_summary, bank_adjust
 from commands.trains_tracker import set_trains_data_command, view_trains_data, add_received_trains
 from commands.trains_auto_checker import start_train_log_checker
-
+from commands.happy_insurance import view_insurance_timestamp, view_active_insurance, view_insurance_log
 # Import tracked item commands
 
 # Import utility functions and background tasks
@@ -20,6 +20,7 @@ from utils.charts import post_hourly_point_graph
 from utils.tracked_items import initialise_combined_tracked_file
 from utils.bank import initialise_bank_file
 from utils.trains_tracker import initialise_train_file
+from utils.happy_insurance import initialise_happy_insurance_file, _initialise_log_file
 from utils.check_loops import (
     start_loops,  # This will start all loops and inject bot
 )
@@ -60,7 +61,9 @@ async def on_ready():
         bot.tree.add_command(set_trains_data_command, guild=guild)  
         bot.tree.add_command(view_trains_data, guild=guild)
         bot.tree.add_command(add_received_trains,guild=guild)
-        
+        bot.tree.add_command(view_insurance_timestamp, guild=guild)  
+        bot.tree.add_command(view_active_insurance, guild=guild)
+        bot.tree.add_command(view_insurance_log, guild=guild)
         
 
 
@@ -72,6 +75,8 @@ async def on_ready():
         initialise_combined_tracked_file()
         initialise_bank_file()
         start_train_log_checker()
+        initialise_happy_insurance_file()
+        _initialise_log_file()
         await post_threshold_summary(bot)
         await post_hourly_point_graph(bot)
         
