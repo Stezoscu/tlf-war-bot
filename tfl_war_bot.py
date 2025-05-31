@@ -9,7 +9,7 @@ from commands.perks import check_gear_perk, list_gear_perks, check_job_perk, lis
 from commands.points import set_points_buy, set_points_sell, check_points_price
 from commands.items import check_item_price, item_price_graph, add_tracked_item_command, remove_tracked_item_command, list_tracked_items_command, set_item_threshold
 from commands.bank import deposit, withdraw, check_statement, loan_summary, bank_adjust
-from commands import trains_tracker as train
+from commands.trains_tracker import set_trains_data_command, view_trains_data, add_received_trains
 
 # Import tracked item commands
 
@@ -56,9 +56,9 @@ async def on_ready():
         bot.tree.add_command(check_statement, guild=guild)
         bot.tree.add_command(loan_summary, guild=guild)
         bot.tree.add_command(bank_adjust, guild=guild)
-        bot.tree.add_command(train.set_trains_data_command)
-        bot.tree.add_command(train.view_trains_data)
-        bot.tree.add_command(train.add_received_trains)
+        bot.tree.add_command(set_trains_data_command, guild=guild)  
+        bot.tree.add_command(view_trains_data, guild=guild)
+        bot.tree.add_command(add_received_trains,guild=guild)
         
 
 
