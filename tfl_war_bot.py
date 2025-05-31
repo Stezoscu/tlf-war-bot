@@ -9,6 +9,7 @@ from commands.perks import check_gear_perk, list_gear_perks, check_job_perk, lis
 from commands.points import set_points_buy, set_points_sell, check_points_price
 from commands.items import check_item_price, item_price_graph, add_tracked_item_command, remove_tracked_item_command, list_tracked_items_command, set_item_threshold
 from commands.bank import deposit, withdraw, check_statement, loan_summary, bank_adjust
+from commands import trains_tracker as train
 
 # Import tracked item commands
 
@@ -17,6 +18,7 @@ from utils.thresholds import post_threshold_summary
 from utils.charts import post_hourly_point_graph
 from utils.tracked_items import initialise_combined_tracked_file
 from utils.bank import initialise_bank_file
+from utils.trains_tracker import initialise_train_file
 from utils.check_loops import (
     start_loops,  # This will start all loops and inject bot
 )
@@ -54,6 +56,9 @@ async def on_ready():
         bot.tree.add_command(check_statement, guild=guild)
         bot.tree.add_command(loan_summary, guild=guild)
         bot.tree.add_command(bank_adjust, guild=guild)
+        bot.tree.add_command(train.set_trains_data_command)
+        bot.tree.add_command(train.view_trains_data)
+        bot.tree.add_command(train.add_received_trains)
         
 
 
@@ -64,6 +69,7 @@ async def on_ready():
         
         initialise_combined_tracked_file()
         initialise_bank_file()
+        initialise_train_file()
         await post_threshold_summary(bot)
         await post_hourly_point_graph(bot)
         
