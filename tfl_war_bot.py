@@ -10,6 +10,7 @@ from commands.points import set_points_buy, set_points_sell, check_points_price
 from commands.items import check_item_price, item_price_graph, add_tracked_item_command, remove_tracked_item_command, list_tracked_items_command, set_item_threshold
 from commands.bank import deposit, withdraw, check_statement, loan_summary, bank_adjust
 from commands.trains_tracker import set_trains_data_command, view_trains_data, add_received_trains
+from commands.trains_auto_checker import start_train_log_checker
 
 # Import tracked item commands
 
@@ -76,7 +77,8 @@ async def on_ready():
 
         # Start background loops
         start_loops(bot)
-
+        start_train_log_checker()
+    
 
         print(f"✅ Bot is ready. Logged in as {bot.user}")
     except Exception as e:
