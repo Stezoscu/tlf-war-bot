@@ -1,7 +1,11 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from utils.trains_tracker import set_train_data, get_train_data, update_trains_received
+from utils.trains_tracker import (
+    set_train_data,
+    load_train_data,
+    update_trains_received
+)
 
 YOUR_DISCORD_USER_ID = 521438347705450507  # Replace with your actual ID
 
@@ -21,18 +25,14 @@ async def set_trains_data_command(
         await interaction.response.send_message("❌ You don't have permission.", ephemeral=True)
         return
 
-    # Acknowledge the interaction immediately
     await interaction.response.defer(ephemeral=True)
 
-    # Do the work
     set_train_data(trains_bought, trains_received, cost_per_train)
-
-    # Follow up with the result
     await interaction.followup.send("✅ Train tracker data updated!")
 
 @app_commands.command(name="view_trains_data", description="View the current train tracker data.")
 async def view_trains_data(interaction: discord.Interaction):
-    data = get_train_data()
+    data = load_train_data()
     msg = (
         f"📊 **Train Tracker Data**\n"
         f"Bought: {data['trains_bought']:n}\n"
@@ -53,7 +53,7 @@ async def add_received_trains(interaction: discord.Interaction, count: int):
         return
 
     update_trains_received(count)
-    data = get_train_data()
+    data = load_train_data()
     await interaction.response.send_message(
         f"✅ Added {count:n} to received trains.\nTotal received now: {data['trains_received']:n}", ephemeral=True
     )

@@ -1,5 +1,3 @@
-# commands/trains_auto_checker.py
-
 from discord.ext import tasks
 from utils.trains_tracker import update_received_trains_from_logs
 

@@ -61,6 +61,7 @@ async def on_ready():
         bot.tree.add_command(view_trains_data, guild=guild)
         bot.tree.add_command(add_received_trains,guild=guild)
         
+        
 
 
         synced = await bot.tree.sync(guild=guild)
@@ -70,7 +71,7 @@ async def on_ready():
         
         initialise_combined_tracked_file()
         initialise_bank_file()
-        initialise_train_file()
+        start_train_log_checker()
         await post_threshold_summary(bot)
         await post_hourly_point_graph(bot)
         
@@ -78,7 +79,7 @@ async def on_ready():
         # Start background loops
         start_loops(bot)
         start_train_log_checker()
-    
+
 
         print(f"✅ Bot is ready. Logged in as {bot.user}")
     except Exception as e:
