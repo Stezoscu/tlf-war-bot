@@ -83,7 +83,7 @@ async def on_ready():
 
         # Start background loops
         start_loops(bot)
-        start_train_log_checker()
+        start_train_log_checker(bot)
 
 
         print(f"✅ Bot is ready. Logged in as {bot.user}")
