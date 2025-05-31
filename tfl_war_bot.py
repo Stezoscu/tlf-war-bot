@@ -74,7 +74,6 @@ async def on_ready():
         
         initialise_combined_tracked_file()
         initialise_bank_file()
-        start_train_log_checker()
         initialise_happy_insurance_file()
         _initialise_log_file()
         await post_threshold_summary(bot)
