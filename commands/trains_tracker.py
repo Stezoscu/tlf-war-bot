@@ -21,8 +21,14 @@ async def set_trains_data_command(
         await interaction.response.send_message("❌ You don't have permission.", ephemeral=True)
         return
 
+    # Acknowledge the interaction immediately
+    await interaction.response.defer(ephemeral=True)
+
+    # Do the work
     set_train_data(trains_bought, trains_received, cost_per_train)
-    await interaction.response.send_message("✅ Train tracker data updated!", ephemeral=True)
+
+    # Follow up with the result
+    await interaction.followup.send("✅ Train tracker data updated!")
 
 @app_commands.command(name="view_trains_data", description="View the current train tracker data.")
 async def view_trains_data(interaction: discord.Interaction):
