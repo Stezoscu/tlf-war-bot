@@ -12,7 +12,6 @@ from commands.bank import deposit, withdraw, check_statement, loan_summary, bank
 from commands.trains_tracker import set_trains_data_command, view_trains_data, add_received_trains
 from commands.trains_auto_checker import start_train_log_checker
 from commands.happy_insurance import view_insurance_timestamp, view_active_insurance, view_insurance_log
-# Import tracked item commands
 
 # Import utility functions and background tasks
 from utils.thresholds import post_threshold_summary
@@ -21,9 +20,7 @@ from utils.tracked_items import initialise_combined_tracked_file
 from utils.bank import initialise_bank_file
 from utils.trains_tracker import initialise_train_file
 from utils.happy_insurance import initialise_happy_insurance_file, _initialise_log_file
-from utils.check_loops import (
-    start_loops,  # This will start all loops and inject bot
-)
+from utils.check_loops import start_loops  # This will start all loops and inject bot
 
 
 intents = discord.Intents.default()
@@ -58,34 +55,34 @@ async def on_ready():
         bot.tree.add_command(check_statement, guild=guild)
         bot.tree.add_command(loan_summary, guild=guild)
         bot.tree.add_command(bank_adjust, guild=guild)
-        bot.tree.add_command(set_trains_data_command, guild=guild)  
+        bot.tree.add_command(set_trains_data_command, guild=guild)
         bot.tree.add_command(view_trains_data, guild=guild)
-        bot.tree.add_command(add_received_trains,guild=guild)
-        bot.tree.add_command(view_insurance_timestamp, guild=guild)  
+        bot.tree.add_command(add_received_trains, guild=guild)
+        bot.tree.add_command(view_insurance_timestamp, guild=guild)
         bot.tree.add_command(view_active_insurance, guild=guild)
         bot.tree.add_command(view_insurance_log, guild=guild)
-        
 
-
+        # 💥 One-time force clear existing commands to ensure freshness
+        await bot.tree.clear_commands(guild=guild)
         synced = await bot.tree.sync(guild=guild)
-        print(f"🔁 Synced {len(synced)} commands to guild {guild.id}")
+        print(f"🔁 Force-synced {len(synced)} commands to guild {guild.id}")
 
         # Perform startup tasks
-        
         initialise_combined_tracked_file()
         initialise_bank_file()
         initialise_happy_insurance_file()
         _initialise_log_file()
+
         await post_threshold_summary(bot)
         await post_hourly_point_graph(bot)
-        
 
         # Start background loops
         start_loops(bot)
         start_train_log_checker(bot)
 
-
         print(f"✅ Bot is ready. Logged in as {bot.user}")
+        print("🔔 NOTE: The clear_commands line was used to ensure a fresh sync. Remove it if no longer needed.")
+
     except Exception as e:
         print(f"❌ Error during bot startup: {e}")
 
