@@ -63,7 +63,7 @@ async def on_ready():
         bot.tree.add_command(view_insurance_log, guild=guild)
 
         # 💥 One-time force clear existing commands to ensure freshness
-        await bot.tree.clear_commands(guild=guild)
+        bot.tree.clear_commands(guild=guild)
         synced = await bot.tree.sync(guild=guild)
         print(f"🔁 Force-synced {len(synced)} commands to guild {guild.id}")
 
