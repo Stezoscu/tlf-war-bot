@@ -21,7 +21,7 @@ from utils.bank import initialise_bank_file
 from utils.trains_tracker import initialise_train_file
 from utils.happy_insurance import initialise_happy_insurance_file, _initialise_log_file
 from utils.check_loops import start_loops  # This will start all loops and inject bot
-from utils.shoplifting import check_shoplifting
+from utils.shoplifting import monitor_shoplifting
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -79,7 +79,7 @@ async def on_ready():
         # Start background loops
         start_loops(bot)
         start_train_log_checker(bot)
-        check_shoplifting.start(bot)
+        bot.loop.create_task(monitor_shoplifting(bot))
 
         print(f"✅ Bot is ready. Logged in as {bot.user}")
        
