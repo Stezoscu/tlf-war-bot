@@ -81,7 +81,7 @@ async def on_ready():
         start_train_log_checker(bot)
 
         print(f"✅ Bot is ready. Logged in as {bot.user}")
-        print("🔔 NOTE: The clear_commands line was used to ensure a fresh sync. Remove it if no longer needed.")
+       
 
     except Exception as e:
         print(f"❌ Error during bot startup: {e}")
