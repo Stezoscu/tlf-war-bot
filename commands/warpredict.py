@@ -8,26 +8,8 @@ from io import BytesIO
 import time
 from datetime import timedelta
 
-from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data
+from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data, estimate_win_time_if_no_more_hits
 
-def estimate_win_time_if_no_more_hits(current_lead: float, starting_goal: float, current_hour: float) -> str:
-    """
-    Estimate how long until the decaying target drops below the current lead,
-    assuming no more hits are made.
-    """
-    target = starting_goal
-    hour = current_hour
-    decay_factor = 0.99
-
-    while target > current_lead:
-        target *= decay_factor
-        hour += 1
-        if hour > current_hour + 1000:
-            return "❌ Unable to estimate (lead too low or error in logic)"
-
-    hours_until_win = hour - current_hour
-    estimated_time = timedelta(hours=hours_until_win)
-    return f"🕰️ If no more hits, time to win = {estimated_time} (at hour {round(hour, 1)})"
 
 @app_commands.command(name="warpredict", description="Predict war outcome from manual inputs.")
 @app_commands.describe(

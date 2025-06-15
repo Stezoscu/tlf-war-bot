@@ -81,6 +81,61 @@ def fetch_v2_war_data():
         "starting_goal": starting_goal
     }
 
+def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
+    lead_gain_per_hour = current_lead / current_hour if current_hour != 0 else 0
+    opponent_score = your_score - current_lead
+
+    hours = np.arange(current_hour, 200, 0.5)
+    target_values = starting_score_goal * (0.99) ** (hours - 24)
+
+    if current_lead >= 0:
+        # You are winning
+        lead_values = current_lead + lead_gain_per_hour * (hours - current_hour)
+        end_index = np.argmax(lead_values >= target_values)
+    else:
+        # You are losing
+        lead_values = current_lead + lead_gain_per_hour * (hours - current_hour)
+        end_index = np.argmax(-lead_values >= target_values)
+
+    end_hour = hours[end_index]
+    final_lead = lead_values[end_index]
+
+    opponent_gain_per_hour = (opponent_score + (lead_gain_per_hour * current_hour)) / current_hour - lead_gain_per_hour
+    hours_remaining = end_hour - current_hour
+    estimated_opponent_final = opponent_score + opponent_gain_per_hour * hours_remaining
+    estimated_your_final = estimated_opponent_final + final_lead
+
+    return {
+        "war_end_hour": round(end_hour, 1),
+        "hours_remaining": round(hours_remaining, 1),
+        "your_final_score": int(estimated_your_final),
+        "opponent_final_score": int(estimated_opponent_final),
+        "final_lead": int(final_lead)
+    }
+
+
+def estimate_win_time_if_no_more_hits(current_lead: float, starting_goal: float, current_hour: float) -> str:
+    """
+    Estimate how long until the decaying target drops below the current lead,
+    assuming no more hits are made.
+    """
+    target = starting_goal
+    hour = current_hour
+    decay_factor = 0.99
+
+    if current_lead < 0:
+        return "🛑 You're currently behind — no-win from idling."
+
+    while target > current_lead:
+        target *= decay_factor
+        hour += 1
+        if hour > current_hour + 1000:
+            return "❌ Unable to estimate (lead too low or error in logic)"
+
+    hours_until_win = hour - current_hour
+    estimated_time = timedelta(hours=hours_until_win)
+    return f"🕰️ If no more hits, time to win = {estimated_time} (at hour {round(hour, 1)})"
+
 # ---- Logging helper ----
 def log_war_data(data: dict, result: dict):
     log_path = Path("data/current_war.json")

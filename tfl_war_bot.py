@@ -90,7 +90,7 @@ async def on_ready():
         # Start background loops
         start_loops(bot)
         start_train_log_checker(bot)
-        bot.loop.create_task(monitor_shoplifting(bot))
+        monitor_shoplifting.start(bot)
 
         print(f"✅ Bot is ready. Logged in as {bot.user}")
        

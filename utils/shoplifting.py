@@ -4,6 +4,7 @@ import discord
 from datetime import datetime
 import os
 import json
+from discord.ext import tasks
 
 TORN_API_KEY = os.getenv("TORN_API_KEY")
 ALERT_FILE_PATH = "/mnt/data/shoplifting_last_alerted.json"
@@ -44,6 +45,7 @@ def get_vulnerable_shops(shop_data: dict):
             vulnerable.append(shop)
     return vulnerable
 
+@tasks.loop(minutes=1)
 async def monitor_shoplifting(bot):
     global first_run, last_alert_time
     await bot.wait_until_ready()
@@ -55,35 +57,32 @@ async def monitor_shoplifting(bot):
         await channel.send("🟢 Shoplifting monitor is now online and checking every minute.")
         first_run = False
 
-    while not bot.is_closed():
-        try:
-            now = datetime.utcnow()
-            data = await fetch_shoplifting_data()
-            shop_data = data.get("shoplifting", {})
-            vulnerable = get_vulnerable_shops(shop_data)
+    try:
+        now = datetime.utcnow()
+        data = await fetch_shoplifting_data()
+        shop_data = data.get("shoplifting", {})
+        vulnerable = get_vulnerable_shops(shop_data)
 
-            alert_sent = False
+        alert_sent = False
 
-            for shop in vulnerable:
-                if shop not in last_alerted:
-                    last_alerted.add(shop)
-                    alert_sent = True
-                    last_alert_time = now
-                    if channel:
-                        name = shop.replace("_", " ").title()
-                        await channel.send(f"🛒 **{name}** is fully vulnerable — all security disabled!")
+        for shop in vulnerable:
+            if shop not in last_alerted:
+                last_alerted.add(shop)
+                alert_sent = True
+                last_alert_time = now
+                if channel:
+                    name = shop.replace("_", " ").title()
+                    await channel.send(f"🛒 **{name}** is fully vulnerable — all security disabled!")
 
-            # Clean up alert cache
-            last_alerted.intersection_update(vulnerable)
-            save_alerted_shops()
+        # Clean up alert cache
+        last_alerted.intersection_update(vulnerable)
+        save_alerted_shops()
 
-            # Hourly heartbeat at HH:00
-            if now.minute == 0 and now.second < 5:
-                if not last_alert_time or (now - last_alert_time).seconds > 3600:
-                    if channel:
-                        await channel.send("🕐 Hourly check complete — no fully vulnerable shops found in the last hour.")
+        # Hourly heartbeat
+        if now.minute == 0:
+            if not last_alert_time or (now - last_alert_time).seconds > 3600:
+                if channel:
+                    await channel.send("🕐 Hourly check complete — no fully vulnerable shops found in the last hour.")
 
-        except Exception as e:
-            print(f"[Shoplifting Monitor] Error: {e}")
-
-        await asyncio.sleep(60)
+    except Exception as e:
+        print(f"[Shoplifting Monitor] Error: {e}")
