@@ -17,7 +17,8 @@ from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data
     starting_goal="The original target score (usually 3000)"
 )
 async def warpredict(interaction: discord.Interaction, current_hour: float, current_lead: int, your_score: int, starting_goal: int):
-    await interaction.response.defer(thinking=True, ephemeral=True) 
+    await interaction.response.defer(thinking=True, ephemeral=True)  # Keep this
+
     result = predict_war_end(current_hour, current_lead, your_score, starting_goal)
 
     pseudo_data = {
@@ -31,7 +32,7 @@ async def warpredict(interaction: discord.Interaction, current_hour: float, curr
     }
     log_war_data(pseudo_data, result)
 
-    await interaction.response.send_message(
+    await interaction.followup.send(  # <- This line is the fix
         f"🧠 **TLF Torn War Predictor**\n"
         f"📅 War ends at hour **{result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
         f"🏁 Final Scores:\n"
