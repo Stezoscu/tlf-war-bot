@@ -1,5 +1,6 @@
 import os
 import discord
+import asyncio
 from discord.ext import commands
 from constants import GUILD_ID, ITEM_THRESHOLD_FILE
 
@@ -33,6 +34,14 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     try:
         guild = discord.Object(id=GUILD_ID)
+
+        # Force remove ALL old commands (global + guild)
+        # Clears any old cached commands that are hanging around
+        await bot.tree.sync()  # first sync globally
+        bot.tree.clear_commands(guild=None)  # clear global commands
+        bot.tree.clear_commands(guild=guild)  # clear guild commands
+        await asyncio.sleep(1)  # optional: allow a brief pause
+        await bot.tree.sync()  # sync cleared
 
         # Register all commands with the guild
         bot.tree.add_command(warpredict, guild=guild)
