@@ -6,8 +6,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
 import time
+from datetime import timedelta
 
 from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data
+
+def estimate_win_time_if_no_more_hits(current_lead: float, starting_goal: float, current_hour: float) -> str:
+    """
+    Estimate how long until the decaying target drops below the current lead,
+    assuming no more hits are made.
+    """
+    target = starting_goal
+    hour = current_hour
+    decay_factor = 0.99
+
+    while target > current_lead:
+        target *= decay_factor
+        hour += 1
+        if hour > current_hour + 1000:
+            return "❌ Unable to estimate (lead too low or error in logic)"
+
+    hours_until_win = hour - current_hour
+    estimated_time = timedelta(hours=hours_until_win)
+    return f"🕰️ If no more hits, time to win = {estimated_time} (at hour {round(hour, 1)})"
 
 @app_commands.command(name="warpredict", description="Predict war outcome from manual inputs.")
 @app_commands.describe(
@@ -17,7 +37,7 @@ from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data
     starting_goal="The original target score (usually 3000)"
 )
 async def warpredict(interaction: discord.Interaction, current_hour: float, current_lead: int, your_score: int, starting_goal: int):
-    await interaction.response.defer(thinking=True, ephemeral=True)  # Keep this
+    await interaction.response.defer(thinking=True, ephemeral=True)
 
     result = predict_war_end(current_hour, current_lead, your_score, starting_goal)
 
@@ -32,15 +52,17 @@ async def warpredict(interaction: discord.Interaction, current_hour: float, curr
     }
     log_war_data(pseudo_data, result)
 
-    await interaction.followup.send(  # <- This line is the fix
+    no_more_hits_msg = estimate_win_time_if_no_more_hits(current_lead, starting_goal, current_hour)
+
+    await interaction.followup.send(
         f"🧠 **TLF Torn War Predictor**\n"
         f"📅 War ends at hour **{result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
         f"🏁 Final Scores:\n"
         f" - You: **{result['your_final_score']}**\n"
         f" - Opponent: **{result['opponent_final_score']}**\n"
-        f"📊 Final Lead: **{result['final_lead']}**"
+        f"📊 Final Lead: **{result['final_lead']}**\n"
+        f"{no_more_hits_msg}"
     )
-
 @app_commands.command(name="autopredict", description="Auto predict war outcome using live Torn API data.")
 @app_commands.describe(
     starting_goal="The original target score (defaults to 3000)"
