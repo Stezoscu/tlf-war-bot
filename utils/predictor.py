@@ -7,6 +7,7 @@ import requests
 import matplotlib.pyplot as plt
 from io import BytesIO
 from pathlib import Path
+from datetime import timedelta
 
 import discord
 from discord import app_commands
