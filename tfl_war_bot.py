@@ -12,6 +12,7 @@ from commands.bank import deposit, withdraw, check_statement, loan_summary, bank
 from commands.trains_tracker import set_trains_data_command, view_trains_data, add_received_trains
 from commands.trains_auto_checker import start_train_log_checker
 from commands.happy_insurance import view_insurance_timestamp, view_active_insurance, view_insurance_log
+from commands.check_shoplifting_alerts import check_shoplifting_alerts
 
 # Import utility functions and background tasks
 from utils.thresholds import post_threshold_summary
@@ -61,6 +62,7 @@ async def on_ready():
         bot.tree.add_command(view_insurance_timestamp, guild=guild)
         bot.tree.add_command(view_active_insurance, guild=guild)
         bot.tree.add_command(view_insurance_log, guild=guild)
+        bot.tree.add_command(check_shoplifting_alerts, guild=guild)
 
         # 💥 One-time force clear existing commands to ensure freshness
         
