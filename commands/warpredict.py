@@ -48,50 +48,50 @@ async def warpredict(interaction: discord.Interaction, current_hour: float, curr
 
 @app_commands.command(name="autopredict", description="Auto predict war outcome using live Torn API data.")
 @app_commands.describe(
-    starting_goal="Override the original target score (e.g. 7600), if known"
+    starting_goal="The original target score (override if known)"
 )
 async def autopredict(interaction: discord.Interaction, starting_goal: int = None):
-    await interaction.response.defer(thinking=True)
+    await interaction.response.defer(thinking=True)  # Let Discord know we're working!
 
     try:
         data = fetch_v2_war_data()
-
         current_hour = data["current_hour"]
-        current_lead = data["current_lead"]
-        your_score = data["your_score"]
 
-        # Use override if provided
+        # Step 1: Decide current target and starting goal logic
         if starting_goal:
             decay_hours = max(0, int(current_hour) - 24)
             current_target = starting_goal * (0.99 ** decay_hours)
-            inferred_goal_text = f"(override used)"
+            inferred_goal_text = "(override used)"
         else:
-            # Infer original goal from API target
-            current_target = data.get("starting_goal") * (0.99 ** max(0, int(current_hour) - 24))
-            inferred_starting_goal = current_target / (0.99 ** max(0, int(current_hour) - 24))
+            current_target = data.get("current_target")
+            if current_target is None:
+                raise ValueError("No current target available to infer starting goal.")
+            decay_hours = max(0, int(current_hour) - 24)
+            inferred_starting_goal = current_target / (0.99 ** decay_hours)
             starting_goal = inferred_starting_goal
             inferred_goal_text = f"(inferred original target ≈ {int(inferred_starting_goal)})"
 
-        # Run prediction
-        result = predict_war_end(
-            current_hour=current_hour,
-            current_lead=current_lead,
-            your_score=your_score,
-            starting_score_goal=starting_goal
-        )
-
-        # Log the result
         data["starting_goal"] = starting_goal
+
+        # Step 2: Run prediction
+        result = predict_war_end(
+            data["current_hour"],
+            data["current_lead"],
+            data["your_score"],
+            data["starting_goal"]
+        )
         log_war_data(data, result)
 
-        # Estimate time to win from decay alone
-        no_more_hits_msg = estimate_win_time_if_no_more_hits(current_lead, starting_goal, current_hour)
+        # Step 3: No-more-hits estimate
+        no_more_hits_msg = estimate_win_time_if_no_more_hits(
+            data["current_lead"], starting_goal, current_hour
+        )
 
-        # Generate chart
-        hours = np.arange(current_hour, result["war_end_hour"] + 1, 0.5)
-        lead_gain_per_hour = current_lead / current_hour if current_hour > 0 else 0
-        lead_values = current_lead + lead_gain_per_hour * (hours - current_hour)
-        target_values = starting_goal * (0.99 ** (np.floor(hours) - 24))
+        # Step 4: Chart generation
+        hours = np.arange(data["current_hour"], result["war_end_hour"] + 1, 0.5)
+        lead_gain_per_hour = data["current_lead"] / data["current_hour"] if data["current_hour"] != 0 else 0
+        lead_values = data["current_lead"] + lead_gain_per_hour * (hours - data["current_hour"])
+        target_values = data["starting_goal"] * (0.99 ** (hours - 24))
 
         fig, ax = plt.subplots()
         ax.plot(hours, lead_values, label="Your Lead")
@@ -112,15 +112,14 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = Non
         await interaction.followup.send(
             content=(
                 f"📡 **Auto Prediction Based on Live Torn Data**\n"
-                f"🕓 War Duration: **{round(current_hour, 1)} hours**\n"
-                f"📊 Current Score: **{your_score}** | Lead: **{current_lead}**\n"
-                f"🎯 Current Target: **{round(current_target, 1)}** {inferred_goal_text}\n"
-                f"📅 Predicted End at hour **{result['war_end_hour']}** "
-                f"(i.e. in **{round(result['war_end_hour'] - current_hour, 1)}h**)\n"
+                f"🕓 War Duration: **{current_hour} hours**\n"
+                f"📊 Current Score: **{data['your_score']}** | Lead: **{data['current_lead']}**\n"
+                f"🎯 Current Target: **{int(current_target)}** {inferred_goal_text}\n"
+                f"📅 Predicted End at hour **{result['war_end_hour']}** (i.e. in **{result['hours_remaining']}h**)\n"
                 f"🏁 Final Score Estimate:\n"
                 f" - You: **{result['your_final_score']}**\n"
-                f" - Opponent: **{result['opponent_final_score']}**\n\n"
-                f"📉 **If No More Hits**:\n{no_more_hits_msg}"
+                f" - Opponent: **{result['opponent_final_score']}**\n"
+                f"{no_more_hits_msg}"
             ),
             file=file
         )
