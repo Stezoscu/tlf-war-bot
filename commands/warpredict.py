@@ -11,7 +11,7 @@ import math
 
 from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data, estimate_win_time_if_no_more_hits
 
-
+#Manual prediction
 @app_commands.command(name="warpredict", description="Predict war outcome from manual inputs.")
 @app_commands.describe(
     current_hour="Current hour of the war (e.g., 36.5)",
