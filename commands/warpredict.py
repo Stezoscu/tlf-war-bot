@@ -67,7 +67,7 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = Non
         inferred_starting = infer_starting_goal(live_target, data["current_hour"])
         
         # Override if provided
-        effective_starting_goal = starting_goal if starting_goal is not None else inferred_starting_goal
+        effective_starting_goal = starting_goal if starting_goal is not None else inferred_starting
 
         # Save to data dict
         data["starting_goal"] = effective_starting_goal
