@@ -13,31 +13,6 @@ import discord
 from discord import app_commands
 
 
-def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
-    lead_gain_per_hour = current_lead / current_hour
-    opponent_score = your_score - current_lead
-
-    hours = np.arange(current_hour, 200, 0.5)
-    lead_values = current_lead + lead_gain_per_hour * (hours - current_hour)
-    target_values = starting_score_goal * (0.99) ** (hours - 24)
-
-    end_index = np.argmax(lead_values >= target_values)
-    end_hour = hours[end_index]
-    final_lead = lead_values[end_index]
-
-    opponent_gain_per_hour = (opponent_score + (lead_gain_per_hour * current_hour)) / current_hour - lead_gain_per_hour
-    hours_remaining = end_hour - current_hour
-    estimated_opponent_final = opponent_score + opponent_gain_per_hour * hours_remaining
-    estimated_your_final = estimated_opponent_final + final_lead
-
-    return {
-        "war_end_hour": round(end_hour, 1),
-        "hours_remaining": round(hours_remaining, 1),
-        "your_final_score": int(estimated_your_final),
-        "opponent_final_score": int(estimated_opponent_final),
-        "final_lead": int(final_lead)
-    }
-
 
 # ---- Torn API fetcher ----
 def fetch_v2_war_data():
@@ -85,24 +60,31 @@ def fetch_v2_war_data():
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
     lead_gain_per_hour = current_lead / current_hour if current_hour != 0 else 0
     opponent_score = your_score - current_lead
-
     hours = np.arange(current_hour, 200, 0.5)
     target_values = starting_score_goal * (0.99) ** (hours - 24)
 
     if current_lead >= 0:
-        # You are winning
+        # We are winning
         lead_values = current_lead + lead_gain_per_hour * (hours - current_hour)
         end_index = np.argmax(lead_values >= target_values)
     else:
-        # You are losing
-        lead_values = current_lead + lead_gain_per_hour * (hours - current_hour)
-        end_index = np.argmax(-lead_values >= target_values)
+        # We are losing
+        # Track how far *behind* we are and simulate that worsening
+        loss_gap = abs(current_lead)
+        loss_increase_per_hour = loss_gap / current_hour if current_hour != 0 else 0
+        loss_values = loss_gap + loss_increase_per_hour * (hours - current_hour)
+        end_index = np.argmax(loss_values >= target_values)
+        # For consistency, treat final_lead as negative
+        lead_values = -loss_values
+
+    if end_index == 0 and all(lead_values < target_values):
+        raise ValueError("❌ Could not estimate war end — progress too slow.")
 
     end_hour = hours[end_index]
     final_lead = lead_values[end_index]
+    hours_remaining = end_hour - current_hour
 
     opponent_gain_per_hour = (opponent_score + (lead_gain_per_hour * current_hour)) / current_hour - lead_gain_per_hour
-    hours_remaining = end_hour - current_hour
     estimated_opponent_final = opponent_score + opponent_gain_per_hour * hours_remaining
     estimated_your_final = estimated_opponent_final + final_lead
 
@@ -113,7 +95,6 @@ def predict_war_end(current_hour, current_lead, your_score, starting_score_goal)
         "opponent_final_score": int(estimated_opponent_final),
         "final_lead": int(final_lead)
     }
-
 
 def estimate_win_time_if_no_more_hits(current_lead: float, starting_goal: float, current_hour: float) -> str:
     """
