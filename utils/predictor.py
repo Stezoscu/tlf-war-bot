@@ -99,25 +99,28 @@ def predict_war_end(current_hour, current_lead, your_score, starting_score_goal)
 
 def estimate_win_time_if_no_more_hits(current_lead: float, starting_goal: float, current_hour: float) -> str:
     """
-    Estimate how long until the decaying target drops below the current lead,
+    Estimate when the decaying target drops below the absolute value of the current lead,
     assuming no more hits are made.
     """
-    target = starting_goal
-    hour = int(current_hour)
-    decay_factor = 0.99
+    from math import floor
 
-    if current_lead < 0:
-        return "❌ With no more hits, your current lead will never reach the decaying target."
+    if current_lead == 0:
+        return "⚖️ The lead is currently zero — unclear when decay will settle the score."
 
-    while target > current_lead:
-        target *= decay_factor
-        hour += 1
-        if hour - current_hour > 500:
-            return "❌ Unable to estimate — decay not enough to meet current lead."
+    abs_lead = abs(current_lead)
+    decay_hour = floor(current_hour)
+    target = starting_goal * (0.99 ** max(0, decay_hour - 24))
+    
+    while target > abs_lead:
+        decay_hour += 1
+        if decay_hour - current_hour > 1000:
+            return "❌ Unable to estimate (lead too low or error in logic)"
+        target *= 0.99
 
-    hours_until_win = hour - current_hour
-    estimated_time = timedelta(hours=hours_until_win)
-    return f"🕰️ If no more hits, you win in **{estimated_time}** (at hour **{hour}**) from decay alone."
+    hours_until_end = decay_hour - current_hour
+    from datetime import timedelta
+    eta = timedelta(hours=hours_until_end)
+    return f"⏳ If no more hits are made, the war will end in {eta} (at hour {decay_hour})."
 
 # ---- Logging helper ----
 def log_war_data(data: dict, result: dict):
