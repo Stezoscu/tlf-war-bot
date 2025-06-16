@@ -103,21 +103,21 @@ def estimate_win_time_if_no_more_hits(current_lead: float, starting_goal: float,
     assuming no more hits are made.
     """
     target = starting_goal
-    hour = current_hour
+    hour = int(current_hour)
     decay_factor = 0.99
 
     if current_lead < 0:
-        return "🛑 You're currently behind — no-win from idling."
+        return "❌ With no more hits, your current lead will never reach the decaying target."
 
     while target > current_lead:
         target *= decay_factor
         hour += 1
-        if hour > current_hour + 1000:
-            return "❌ Unable to estimate (lead too low or error in logic)"
+        if hour - current_hour > 500:
+            return "❌ Unable to estimate — decay not enough to meet current lead."
 
     hours_until_win = hour - current_hour
     estimated_time = timedelta(hours=hours_until_win)
-    return f"🕰️ If no more hits, time to win = {estimated_time} (at hour {round(hour, 1)})"
+    return f"🕰️ If no more hits, you win in **{estimated_time}** (at hour **{hour}**) from decay alone."
 
 # ---- Logging helper ----
 def log_war_data(data: dict, result: dict):
