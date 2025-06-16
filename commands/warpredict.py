@@ -47,14 +47,26 @@ async def warpredict(interaction: discord.Interaction, current_hour: float, curr
     )
 @app_commands.command(name="autopredict", description="Auto predict war outcome using live Torn API data.")
 @app_commands.describe(
-    starting_goal="The original target score (defaults to 3000)"
+    starting_goal="The original target score (optional — will be inferred if not set)"
 )
-async def autopredict(interaction: discord.Interaction, starting_goal: int = 3000):
-    await interaction.response.defer(thinking=True)  # Let Discord know we're working!
+async def autopredict(interaction: discord.Interaction, starting_goal: int = None):
+    await interaction.response.defer(thinking=True)
 
     try:
         data = fetch_v2_war_data()
-        data["starting_goal"] = starting_goal
+
+        if starting_goal:
+            # User provided override
+            data["starting_goal"] = starting_goal
+            current_target = starting_goal * (0.99) ** (data["current_hour"] - 24)
+            inferred_goal_text = ""
+        else:
+            # Infer starting goal from current decayed target
+            current_target = data["current_target"]
+            decay_factor = (0.99) ** (data["current_hour"] - 24)
+            inferred_starting_goal = current_target / decay_factor
+            data["starting_goal"] = inferred_starting_goal
+            inferred_goal_text = f"(inferred original target ≈ **{round(inferred_starting_goal)}**)"
 
         result = predict_war_end(
             data["current_hour"],
@@ -64,9 +76,6 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
         )
 
         log_war_data(data, result)
-
-        current_target = data["starting_goal"] * (0.99) ** (data["current_hour"] - 24)
-        current_target = round(current_target, 1)
 
         hours = np.arange(data["current_hour"], result["war_end_hour"] + 1, 0.5)
         lead_gain_per_hour = data["current_lead"] / data["current_hour"]
@@ -94,8 +103,7 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
                 f"📡 **Auto Prediction Based on Live Torn Data**\n"
                 f"🕓 War Duration: **{data['current_hour']} hours**\n"
                 f"📊 Current Score: **{data['your_score']}** | Lead: **{data['current_lead']}**\n"
-                f"🎯 Starting Target: **{data['starting_goal']}**\n"
-                f"📉 **Predicted Target Right Now**: **{current_target}**\n"
+                f"🎯 Current Target: **{round(current_target, 1)}** {inferred_goal_text}\n"
                 f"📅 Predicted End: **hour {result['war_end_hour']}** (in {result['hours_remaining']}h)\n"
                 f"🏁 Final Score Estimate:\n"
                 f" - You: **{result['your_final_score']}**\n"
@@ -103,5 +111,6 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = 300
             ),
             file=file
         )
+
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {e}")

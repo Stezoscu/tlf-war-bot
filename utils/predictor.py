@@ -45,7 +45,8 @@ def fetch_v2_war_data():
     your_score = your["score"]
     enemy_score = enemy["score"]
     current_lead = your_score - enemy_score
-    starting_goal = ranked_war.get("target", 3000)
+
+    current_target = ranked_war.get("target", 3000)  # ✅ Already-decayed target
 
     return {
         "war_id": ranked_war["war_id"],
@@ -54,7 +55,7 @@ def fetch_v2_war_data():
         "current_hour": current_hour,
         "your_score": your_score,
         "current_lead": current_lead,
-        "starting_goal": starting_goal
+        "current_target": current_target  # ✅ label clearly
     }
 
 def predict_war_end(current_hour, current_lead, your_score, starting_score_goal):
