@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import time
 from datetime import timedelta
+import math
 
 from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data, estimate_win_time_if_no_more_hits
 
