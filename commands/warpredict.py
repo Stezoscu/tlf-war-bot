@@ -60,7 +60,7 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = Non
         decay_hours = max(0, math.floor(current_hour - 24))
 
         # Get current decayed target from API
-        live_target = data["starting_goal"]
+        live_target = data["current_target"]
 
         # Infer original goal from current target
         inferred_starting_goal = round(live_target / (0.99 ** decay_hours)) if decay_hours > 0 else live_target
