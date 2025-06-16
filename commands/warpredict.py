@@ -10,6 +10,7 @@ from datetime import timedelta
 import math
 
 from utils.predictor import predict_war_end, fetch_v2_war_data, log_war_data, estimate_win_time_if_no_more_hits
+from utils.predictor import infer_starting_goal
 
 #Manual prediction
 @app_commands.command(name="warpredict", description="Predict war outcome from manual inputs.")
@@ -63,8 +64,8 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = Non
         live_target = data["current_target"]
 
         # Infer original goal from current target
-        inferred_starting_goal = round(live_target / (0.99 ** decay_hours)) if decay_hours > 0 else live_target
-
+        inferred_starting = infer_starting_goal(live_target, data["current_hour"])
+        
         # Override if provided
         effective_starting_goal = starting_goal if starting_goal is not None else inferred_starting_goal
 
@@ -118,7 +119,7 @@ async def autopredict(interaction: discord.Interaction, starting_goal: int = Non
                 f"🕓 War Duration: **{data['current_hour']} hours**\n"
                 f"📊 Current Score: **{data['your_score']}** | Lead: **{data['current_lead']}**\n"
                 f"🎯 Current Target: **{current_target}** "
-                f"(inferred original target ≈ {inferred_starting_goal})\n"
+                f"(inferred original target ≈ {inferred_starting})\n"
                 f"📅 Predicted End at hour **{result['war_end_hour']}** (i.e. in {result['hours_remaining']}h)\n"
                 f"🏁 Final Score Estimate:\n"
                 f" \nYou: **{result['your_final_score']}**\n"

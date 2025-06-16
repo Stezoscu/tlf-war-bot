@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from pathlib import Path
 from datetime import timedelta
+import math
 
 import discord
 from discord import app_commands
@@ -162,4 +163,17 @@ def log_war_data(data: dict, result: dict):
     with open(log_path, "w", encoding="utf-8") as f:
         json.dump(log_data, f, indent=4)
 
-# ---- Manual command ----
+
+
+#work out the starting goal from the current target and current hour
+def infer_starting_goal(current_target: float, current_hour: float) -> float:
+    """
+    Infer the original starting goal based on current decayed target and war hour.
+    Torn decay begins at hour 25 and reduces the target by 1% each full hour.
+    """
+    if current_hour < 25:
+        return current_target  # No decay yet
+
+    decay_hours = math.floor(current_hour) - 24
+    starting_goal = current_target / (0.99 ** decay_hours)
+    return round(starting_goal)
